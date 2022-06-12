@@ -1,0 +1,4 @@
+* text=auto
+*.{md,ps1} text
+*.{sh,nix} text eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
