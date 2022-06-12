@@ -4,7 +4,11 @@
 
 ## Usage
 
-TBD
+All solutions are in the form of examples, which are automatically tested together with the unit tests.
+
+```shell
+make gotest
+```
 
 ## Unlicense
 
