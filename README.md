@@ -1,4 +1,4 @@
-# AOC (Advent of Code)
+# AOC (Advent of Code©)
 
 [Advent of Code](https://adventofcode.com) solutions in [Golang](https://go.dev/).
 
