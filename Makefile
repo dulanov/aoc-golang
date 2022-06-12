@@ -1,7 +1,5 @@
 .DEFAULT_GOAL := help
 
-PRJ = $(shell basename "$(pwd)")
-
 .PHONY: gogen
 gogen: ## Generate extra files
 	@go generate ./...
