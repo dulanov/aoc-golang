@@ -15,29 +15,28 @@ import (
 //go:embed testdata/input
 var input string
 
-func ExamplePart1() {
-	fmt.Println(Part1(strings.NewReader(input)))
+func ExamplePartOne() {
+	fmt.Println(PartOne(strings.NewReader(input)))
 	// Output:
 	// 1342
 }
 
-func TestPart1(t *testing.T) {
+func TestPartOne(t *testing.T) {
 	const in = "199\n200\n208\n210\n200\n207\n240\n269\n260\n263"
-	got := Part1(strings.NewReader(in))
+	got := PartOne(strings.NewReader(in))
 	want := 7
 	if got != want {
 		t.Errorf("got %d, want %d", got, want)
 	}
 }
 
-func Part1(r io.Reader) int {
+func PartOne(r io.Reader) int {
 	return numberOfTimes(r, byAsc)
 }
 
 func numberOfTimes(r io.Reader, fn func(int, int) bool) (n int) {
-	vs := conv(split(r))
-	for i := 1; i < len(vs); i++ {
-		if fn(vs[i-1], vs[i]) {
+	for _, pr := range pairwise(conv(split(r))) {
+		if fn(pr[0], pr[1]) {
 			n++
 		}
 	}
@@ -64,6 +63,17 @@ func conv(vs []string) []int {
 			log.Fatal(err)
 		}
 		ns[i] = n
+	}
+	return ns
+}
+
+func pairwise(vs []int) [][2]int {
+	if len(vs) <= 1 {
+		return [][2]int{}
+	}
+	ns := make([][2]int, len(vs)-1)
+	for i := 0; i < len(vs)-1; i++ {
+		ns[i] = [2]int{vs[i], vs[i+1]}
 	}
 	return ns
 }
