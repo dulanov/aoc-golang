@@ -1,6 +1,6 @@
 # AOC (Advent of Code©)
 
-[Advent of Code](https://adventofcode.com) solutions in [Golang](https://go.dev/).
+[Advent of Code©](https://adventofcode.com) solutions in [Golang](https://go.dev/).
 
 ## Usage
 
