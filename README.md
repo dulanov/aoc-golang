@@ -8,4 +8,4 @@ TBD
 
 ## Unlicense
 
-This project is published under the [public domain software](UNLICENSE).
+This project is released into [the public domain](UNLICENSE).
