@@ -1,5 +1,5 @@
 // https://adventofcode.com/2021/day/1
-package day01_test
+package d01_test
 
 import (
 	"bufio"
@@ -15,27 +15,27 @@ import (
 //go:embed testdata/input
 var input string
 
-func Example() {
-	fmt.Println(numberOfTimes(strings.NewReader(input), byAsc))
+func ExamplePart1() {
+	fmt.Println(Part1(strings.NewReader(input)))
 	// Output:
 	// 1342
 }
 
-func TestNumberOfTimes(t *testing.T) {
+func TestPart1(t *testing.T) {
 	const in = "199\n200\n208\n210\n200\n207\n240\n269\n260\n263"
-	got := numberOfTimes(strings.NewReader(in), byAsc)
+	got := Part1(strings.NewReader(in))
 	want := 7
 	if got != want {
 		t.Errorf("got %d, want %d", got, want)
 	}
 }
 
-func numberOfTimes(r io.Reader, fn func(int, int) bool) int {
-	var n int
+func Part1(r io.Reader) int {
+	return numberOfTimes(r, byAsc)
+}
+
+func numberOfTimes(r io.Reader, fn func(int, int) bool) (n int) {
 	vs := conv(split(r))
-	if len(vs) <= 1 {
-		return n
-	}
 	for i := 1; i < len(vs); i++ {
 		if fn(vs[i-1], vs[i]) {
 			n++
@@ -44,8 +44,7 @@ func numberOfTimes(r io.Reader, fn func(int, int) bool) int {
 	return n
 }
 
-func split(r io.Reader) []string {
-	var vs []string
+func split(r io.Reader) (vs []string) {
 	sc := bufio.NewScanner(r)
 	sc.Split(bufio.ScanLines)
 	for sc.Scan() {
@@ -58,15 +57,15 @@ func split(r io.Reader) []string {
 }
 
 func conv(vs []string) []int {
-	rs := make([]int, len(vs))
+	ns := make([]int, len(vs))
 	for i, s := range vs {
-		j, err := strconv.Atoi(s)
+		n, err := strconv.Atoi(s)
 		if err != nil {
 			log.Fatal(err)
 		}
-		rs[i] = j
+		ns[i] = n
 	}
-	return rs
+	return ns
 }
 
 func byAsc(i, j int) bool {
