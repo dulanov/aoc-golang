@@ -31,12 +31,15 @@ func TestPartOne(t *testing.T) {
 }
 
 func PartOne(r io.Reader) int {
-	return numberOfTimes(r, byAsc)
+	return numberOfTimes(r, func(i, j int) bool {
+		return j > i
+	})
 }
 
 func numberOfTimes(r io.Reader, fn func(int, int) bool) (n int) {
-	for _, pr := range pairwise(conv(split(r))) {
-		if fn(pr[0], pr[1]) {
+	vs := conv(split(r))
+	for i := 1; i < len(vs); i++ {
+		if fn(vs[i-1], vs[i]) {
 			n++
 		}
 	}
@@ -65,19 +68,4 @@ func conv(vs []string) []int {
 		ns[i] = n
 	}
 	return ns
-}
-
-func pairwise(vs []int) [][2]int {
-	if len(vs) <= 1 {
-		return [][2]int{}
-	}
-	ns := make([][2]int, len(vs)-1)
-	for i := 0; i < len(vs)-1; i++ {
-		ns[i] = [2]int{vs[i], vs[i+1]}
-	}
-	return ns
-}
-
-func byAsc(i, j int) bool {
-	return j > i
 }
