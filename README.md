@@ -6,6 +6,6 @@
 
 TBD
 
-## License
+## Unlicense
 
-This project is licensed under the [public domain software](UNLICENSE).
+This project is published under the [public domain software](UNLICENSE).
