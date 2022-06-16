@@ -4,8 +4,7 @@
 
 ## Usage
 
-All solutions are in [the form of single file examples](https://go.dev/blog/examples),
-which are automatically tested together with the unit tests.
+All solutions are in [the form of self-sufficient examples](https://go.dev/blog/examples).
 
 ```shell
 go test ./...
