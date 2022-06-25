@@ -66,9 +66,9 @@ func PartTwo(r io.Reader) int {
 	})
 }
 
-func numberOfTimes(vs []int, w int, fn func(int, int) bool) (n int) {
-	for i := w; i < len(vs); i++ {
-		if fn(vs[i-w], vs[i]) {
+func numberOfTimes(vs []int, wn int, fn func(int, int) bool) (n int) {
+	for i := wn; i < len(vs); i++ {
+		if fn(vs[i-wn], vs[i]) {
 			n++
 		}
 	}
