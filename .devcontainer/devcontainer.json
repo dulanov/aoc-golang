@@ -3,7 +3,7 @@
     "build": {
         "dockerfile": "Dockerfile",
         "args": {
-            "VARIANT": "1.18"
+            "VARIANT": "1.18-bullseye"
         }
     },
     "runArgs": [
@@ -11,6 +11,11 @@
         "--security-opt",
         "seccomp=unconfined"
     ],
+    "features": {
+        "git": "os-provided",
+        "git-lfs": "latest",
+        "github-cli": "latest"
+    },
     "customizations": {
         "vscode": {
             "extensions": [
@@ -24,6 +29,6 @@
             }
         }
     },
-    "postCreateCommand": "",
+    "postCreateCommand": "git lfs pull",
     "remoteUser": "vscode"
 }
