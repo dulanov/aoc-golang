@@ -35,51 +35,56 @@ type cmd struct {
 	stp int
 }
 
+type pos struct {
+	h int
+	v int
+}
+
 func ExamplePartOne() {
-	ps, dp := PartOne(strings.NewReader(input))
-	fmt.Println(ps * dp)
+	ps := PartOne(strings.NewReader(input))
+	fmt.Println(ps.h * ps.v)
 	// Output:
 	// 2039256
 }
 
 func ExamplePartTwo() {
-	ps, dp := PartTwo(strings.NewReader(input))
-	fmt.Println(ps * dp)
+	ps := PartTwo(strings.NewReader(input))
+	fmt.Println(ps.h * ps.v)
 	// Output:
 	// 1856459736
 }
 
 func TestPartOne(t *testing.T) {
-	ps, dp := PartOne(strings.NewReader(input_test))
-	got, want := ps*dp, 150
+	got := PartOne(strings.NewReader(input_test))
+	want := pos{15, 10}
 	if got != want {
-		t.Errorf("got %d, want %d", got, want)
+		t.Errorf("got %+v, want %+v", got, want)
 	}
 }
 
 func TestPartTwo(t *testing.T) {
-	ps, dp := PartTwo(strings.NewReader(input_test))
-	got, want := ps*dp, 900
+	got := PartTwo(strings.NewReader(input_test))
+	want := pos{15, 60}
 	if got != want {
 		t.Errorf("got %d, want %d", got, want)
 	}
 }
 
-func PartOne(r io.Reader) (ps int, dp int) {
+func PartOne(r io.Reader) (ps pos) {
 	for _, in := range split(r) {
 		switch in.dir {
 		case dirUp:
-			dp -= in.stp
+			ps.v -= in.stp
 		case dirDwn:
-			dp += in.stp
+			ps.v += in.stp
 		case dirFwd:
-			ps += in.stp
+			ps.h += in.stp
 		}
 	}
-	return ps, dp
+	return ps
 }
 
-func PartTwo(r io.Reader) (ps int, dp int) {
+func PartTwo(r io.Reader) (ps pos) {
 	var aim int
 	for _, in := range split(r) {
 		switch in.dir {
@@ -88,11 +93,11 @@ func PartTwo(r io.Reader) (ps int, dp int) {
 		case dirDwn:
 			aim += in.stp
 		case dirFwd:
-			ps += in.stp
-			dp += aim * in.stp
+			ps.h += in.stp
+			ps.v += aim * in.stp
 		}
 	}
-	return ps, dp
+	return ps
 }
 
 func split(r io.Reader) (vs []cmd) {

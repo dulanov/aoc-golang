@@ -19,13 +19,6 @@ jobs:
     - run: go version
     - name: Install staticcheck
       run: go install honnef.co/go/tools/cmd/staticcheck@latest
-    - name: Restore Go modules cache
-      uses: actions/cache@v3
-      with:
-        path: ~/go/pkg/mod
-        key: go-${{ runner.os }}-${{ hashFiles('go.mod') }}
-        restore-keys: |
-          go-${{ runner.os }}-
     - name: Check codestyle
       run: gofmt -l .
     - name: Run linter
