@@ -42,7 +42,7 @@ func TestPartOne(t *testing.T) {
 	got := PartOne(strings.NewReader(input_test))
 	want := 7
 	if got != want {
-		t.Errorf("got %d, want %d", got, want)
+		t.Errorf("got %d; want %d", got, want)
 	}
 }
 
@@ -50,7 +50,7 @@ func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(input_test))
 	want := 5
 	if got != want {
-		t.Errorf("got %d, want %d", got, want)
+		t.Errorf("got %d; want %d", got, want)
 	}
 }
 
@@ -66,16 +66,16 @@ func PartTwo(r io.Reader) int {
 	})
 }
 
-func numberOfTimes(vs []int, wn int, fn func(int, int) bool) (n int) {
-	for i := wn; i < len(vs); i++ {
-		if fn(vs[i-wn], vs[i]) {
+func numberOfTimes(ns []int, w int, fn func(int, int) bool) (n int) {
+	for i := w; i < len(ns); i++ {
+		if fn(ns[i-w], ns[i]) {
 			n++
 		}
 	}
 	return n
 }
 
-func split(r io.Reader) (vs []int) {
+func split(r io.Reader) (ns []int) {
 	sc := bufio.NewScanner(r)
 	sc.Split(bufio.ScanLines)
 	for sc.Scan() {
@@ -83,10 +83,10 @@ func split(r io.Reader) (vs []int) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		vs = append(vs, n)
+		ns = append(ns, n)
 	}
 	if err := sc.Err(); err != nil {
 		log.Fatal(err)
 	}
-	return vs
+	return ns
 }

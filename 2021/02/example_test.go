@@ -30,9 +30,9 @@ const (
 	dirFwd dir = "forward"
 )
 
-type cmd struct {
-	dir dir
-	stp int
+type op struct {
+	dir  dir
+	step int
 }
 
 type pos struct {
@@ -58,7 +58,7 @@ func TestPartOne(t *testing.T) {
 	got := PartOne(strings.NewReader(input_test))
 	want := pos{15, 10}
 	if got != want {
-		t.Errorf("got %+v, want %+v", got, want)
+		t.Errorf("got %+v; want %+v", got, want)
 	}
 }
 
@@ -66,41 +66,41 @@ func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(input_test))
 	want := pos{15, 60}
 	if got != want {
-		t.Errorf("got %d, want %d", got, want)
+		t.Errorf("got %+v; want %+v", got, want)
 	}
 }
 
-func PartOne(r io.Reader) (ps pos) {
-	for _, in := range split(r) {
-		switch in.dir {
+func PartOne(r io.Reader) (p pos) {
+	for _, o := range split(r) {
+		switch o.dir {
 		case dirUp:
-			ps.v -= in.stp
+			p.v -= o.step
 		case dirDwn:
-			ps.v += in.stp
+			p.v += o.step
 		case dirFwd:
-			ps.h += in.stp
+			p.h += o.step
 		}
 	}
-	return ps
+	return p
 }
 
-func PartTwo(r io.Reader) (ps pos) {
+func PartTwo(r io.Reader) (p pos) {
 	var aim int
 	for _, in := range split(r) {
 		switch in.dir {
 		case dirUp:
-			aim -= in.stp
+			aim -= in.step
 		case dirDwn:
-			aim += in.stp
+			aim += in.step
 		case dirFwd:
-			ps.h += in.stp
-			ps.v += aim * in.stp
+			p.h += in.step
+			p.v += aim * in.step
 		}
 	}
-	return ps
+	return p
 }
 
-func split(r io.Reader) (vs []cmd) {
+func split(r io.Reader) (ops []op) {
 	sc := bufio.NewScanner(r)
 	sc.Split(bufio.ScanLines)
 	for sc.Scan() {
@@ -109,10 +109,10 @@ func split(r io.Reader) (vs []cmd) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		vs = append(vs, cmd{(dir)(fs[0]), n})
+		ops = append(ops, op{(dir)(fs[0]), n})
 	}
 	if err := sc.Err(); err != nil {
 		log.Fatal(err)
 	}
-	return vs
+	return ops
 }
