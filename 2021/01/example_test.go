@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 	"strings"
 	"testing"
@@ -55,13 +54,13 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) int {
-	return numberOfTimes(split(r), 1, func(i, j int) bool {
+	return numberOfTimes(scan(r), 1, func(i, j int) bool {
 		return j > i
 	})
 }
 
 func PartTwo(r io.Reader) int {
-	return numberOfTimes(split(r), 3, func(i, j int) bool {
+	return numberOfTimes(scan(r), 3, func(i, j int) bool {
 		return j > i
 	})
 }
@@ -75,18 +74,10 @@ func numberOfTimes(ns []int, w int, fn func(int, int) bool) (n int) {
 	return n
 }
 
-func split(r io.Reader) (ns []int) {
-	sc := bufio.NewScanner(r)
-	sc.Split(bufio.ScanLines)
-	for sc.Scan() {
-		n, err := strconv.Atoi(sc.Text())
-		if err != nil {
-			log.Fatal(err)
-		}
+func scan(r io.Reader) (ns []int) {
+	for s := bufio.NewScanner(r); s.Scan(); {
+		n, _ := strconv.Atoi(s.Text())
 		ns = append(ns, n)
-	}
-	if err := sc.Err(); err != nil {
-		log.Fatal(err)
 	}
 	return ns
 }

@@ -6,7 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -77,10 +77,10 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) (rt rate) {
-	ns, w := split(r)
-	for i := w - 1; i >= 0; i-- {
-		a := dissect(ns, i)
-		if len(a[0]) <= len(a[1]) {
+	ns, bits := scan(r)
+	for i := bits - 1; i >= 0; i-- {
+		ns0, ns1 := split(ns, i, false)
+		if len(ns0) <= len(ns1) {
 			rt.gamma |= 1 << i
 		} else {
 			rt.epsilon |= 1 << i
@@ -90,56 +90,53 @@ func PartOne(r io.Reader) (rt rate) {
 }
 
 func PartTwo(r io.ReadSeeker) (rt rating) {
-	ns, w := split(r)
-	cl := func(ns []uint64, fn func([2][]uint64) []uint64) uint64 {
-		for i := w - 1; len(ns) != 1; i-- {
-			ns = fn(dissect(ns, i))
-		}
-		return ns[0]
-	}
-	rt.o2 = cl(ns, func(a [2][]uint64) []uint64 {
-		if len(a[1]) >= len(a[0]) {
-			return a[1]
-		} else {
-			return a[0]
-		}
+	ns, bits := scan(r)
+	sort.Slice(ns, func(i, j int) bool { return ns[i] < ns[j] })
+	rt.o2 = filter(ns, bits, func(ns0, ns1 []uint64) bool {
+		return len(ns1) >= len(ns0)
 	})
-	rt.co2 = cl(ns, func(a [2][]uint64) []uint64 {
-		if len(a[1]) < len(a[0]) {
-			return a[1]
-		} else {
-			return a[0]
-		}
+	rt.co2 = filter(ns, bits, func(ns0, ns1 []uint64) bool {
+		return len(ns1) < len(ns0)
 	})
 	return rt
 }
 
-func dissect(ns []uint64, shr int) (a [2][]uint64) {
-	for _, n := range ns {
-		if (n>>shr)&1 == 0 {
-			a[0] = append(a[0], n)
+func filter(ns []uint64, bits int, cmp func([]uint64, []uint64) bool) uint64 {
+	for i := bits - 1; len(ns) != 1; i-- {
+		ns0, ns1 := split(ns, i, true)
+		if cmp(ns0, ns1) {
+			ns = ns1
 		} else {
-			a[1] = append(a[1], n)
+			ns = ns0
 		}
 	}
-	return a
+	return ns[0]
 }
 
-func split(r io.Reader) (ns []uint64, w int) {
-	sc := bufio.NewScanner(r)
-	sc.Split(bufio.ScanLines)
-	for sc.Scan() {
-		n, err := strconv.ParseUint(sc.Text(), 2, 64)
-		if err != nil {
-			log.Fatal(err)
+func split(ns []uint64, shr int, sorted bool) (ns0, ns1 []uint64) {
+	if sorted {
+		i := sort.Search(len(ns), func(i int) bool {
+			return (ns[i]>>shr)&1 == 1
+		})
+		return ns[:i], ns[i:]
+	}
+	for _, n := range ns {
+		if (n>>shr)&1 == 0 {
+			ns0 = append(ns0, n)
+		} else {
+			ns1 = append(ns1, n)
 		}
+	}
+	return ns0, ns1
+}
+
+func scan(r io.Reader) (ns []uint64, bits int) {
+	for s := bufio.NewScanner(r); s.Scan(); {
+		if bits == 0 {
+			bits = len(s.Text())
+		}
+		n, _ := strconv.ParseUint(s.Text(), 2, 64)
 		ns = append(ns, n)
-		if w == 0 {
-			w = len(sc.Text())
-		}
 	}
-	if err := sc.Err(); err != nil {
-		log.Fatal(err)
-	}
-	return ns, w
+	return ns, bits
 }

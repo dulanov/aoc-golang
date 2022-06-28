@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"log"
 	"strconv"
 	"strings"
 	"testing"
@@ -71,7 +70,7 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) (p pos) {
-	for _, o := range split(r) {
+	for _, o := range scan(r) {
 		switch o.dir {
 		case dirUp:
 			p.v -= o.step
@@ -86,7 +85,7 @@ func PartOne(r io.Reader) (p pos) {
 
 func PartTwo(r io.Reader) (p pos) {
 	var aim int
-	for _, in := range split(r) {
+	for _, in := range scan(r) {
 		switch in.dir {
 		case dirUp:
 			aim -= in.step
@@ -100,19 +99,11 @@ func PartTwo(r io.Reader) (p pos) {
 	return p
 }
 
-func split(r io.Reader) (ops []op) {
-	sc := bufio.NewScanner(r)
-	sc.Split(bufio.ScanLines)
-	for sc.Scan() {
-		fs := strings.Fields(sc.Text())
-		n, err := strconv.Atoi(fs[1])
-		if err != nil {
-			log.Fatal(err)
-		}
+func scan(r io.Reader) (ops []op) {
+	for s := bufio.NewScanner(r); s.Scan(); {
+		fs := strings.Fields(s.Text())
+		n, _ := strconv.Atoi(fs[1])
 		ops = append(ops, op{(dir)(fs[0]), n})
-	}
-	if err := sc.Err(); err != nil {
-		log.Fatal(err)
 	}
 	return ops
 }
