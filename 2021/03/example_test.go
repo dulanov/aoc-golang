@@ -29,8 +29,7 @@ const input_test = `00100
 var input string
 
 type rate struct {
-	gamma   uint64
-	epsilon uint64
+	gamma, epsilon uint64
 }
 
 func (rt rate) String() string {
@@ -38,8 +37,7 @@ func (rt rate) String() string {
 }
 
 type rating struct {
-	o2  uint64
-	co2 uint64
+	o2, co2 uint64
 }
 
 func (rtg rating) String() string {

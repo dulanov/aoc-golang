@@ -34,11 +34,6 @@ type op struct {
 	step int
 }
 
-type pos struct {
-	h int
-	v int
-}
-
 func ExamplePartOne() {
 	ps := PartOne(strings.NewReader(input))
 	fmt.Println(ps.h * ps.v)
@@ -55,7 +50,7 @@ func ExamplePartTwo() {
 
 func TestPartOne(t *testing.T) {
 	got := PartOne(strings.NewReader(input_test))
-	want := pos{15, 10}
+	want := struct{ h, v int }{15, 10}
 	if got != want {
 		t.Errorf("got %+v; want %+v", got, want)
 	}
@@ -63,27 +58,27 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(input_test))
-	want := pos{15, 60}
+	want := struct{ h, v int }{15, 60}
 	if got != want {
 		t.Errorf("got %+v; want %+v", got, want)
 	}
 }
 
-func PartOne(r io.Reader) (p pos) {
+func PartOne(r io.Reader) (pos struct{ h, v int }) {
 	for _, o := range scan(r) {
 		switch o.dir {
 		case dirUp:
-			p.v -= o.step
+			pos.v -= o.step
 		case dirDwn:
-			p.v += o.step
+			pos.v += o.step
 		case dirFwd:
-			p.h += o.step
+			pos.h += o.step
 		}
 	}
-	return p
+	return pos
 }
 
-func PartTwo(r io.Reader) (p pos) {
+func PartTwo(r io.Reader) (pos struct{ h, v int }) {
 	var aim int
 	for _, in := range scan(r) {
 		switch in.dir {
@@ -92,11 +87,11 @@ func PartTwo(r io.Reader) (p pos) {
 		case dirDwn:
 			aim += in.step
 		case dirFwd:
-			p.h += in.step
-			p.v += aim * in.step
+			pos.h += in.step
+			pos.v += aim * in.step
 		}
 	}
-	return p
+	return pos
 }
 
 func scan(r io.Reader) (ops []op) {
