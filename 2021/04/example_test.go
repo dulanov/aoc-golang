@@ -64,21 +64,21 @@ func (b board) sumRows() (sums [5]int) {
 
 func ExamplePartOne() {
 	sc := PartOne(strings.NewReader(input))
-	fmt.Println(sc.n * sc.s)
+	fmt.Println(sc.n * sc.p)
 	// Output:
 	// 29440
 }
 
 func ExamplePartTwo() {
 	sc := PartTwo(strings.NewReader(input))
-	fmt.Println(sc.n * sc.s)
+	fmt.Println(sc.n * sc.p)
 	// Output:
 	// 13884
 }
 
 func TestPartOne(t *testing.T) {
 	got := PartOne(strings.NewReader(input_test))
-	want := struct{ n, s int }{24, 188}
+	want := struct{ n, p int }{24, 188}
 	if got != want {
 		t.Errorf("got %+v; want %+v", got, want)
 	}
@@ -86,37 +86,37 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(input_test))
-	want := struct{ n, s int }{13, 148}
+	want := struct{ n, p int }{13, 148}
 	if got != want {
 		t.Errorf("got %+v; want %+v", got, want)
 	}
 }
 
-func PartOne(r io.Reader) (sc struct{ n, s int }) {
+func PartOne(r io.Reader) (sc struct{ n, p int }) {
 	bs, ns := scan(r)
 	return score(bs, 1, ns)
 }
 
-func PartTwo(r io.ReadSeeker) (sc struct{ n, s int }) {
+func PartTwo(r io.ReadSeeker) (sc struct{ n, p int }) {
 	bs, ns := scan(r)
 	return score(bs, len(bs), ns)
 }
 
-func score(bs []board, bn int, ns []int) (sc struct{ n, s int }) {
-	idx, ss := genIndex(bs), genSums(bs)
+func score(bs []board, bn int, ns []int) (sc struct{ n, p int }) {
+	idx, ps := genIndex(bs), genPoints(bs)
 	for _, n := range ns {
 		for i := range bs {
 			p, ok := idx.ps[i][n]
-			if ok && ss[i][0] != 0 {
-				ss[i][0] -= n
-				ss[i][p.col+1] -= n
-				ss[i][p.row+6] -= n
-				if ss[i][p.col+1] == 0 ||
-					ss[i][p.row+6] == 0 {
+			if ok && ps[i][0] != 0 {
+				ps[i][0] -= n
+				ps[i][p.col+1] -= n
+				ps[i][p.row+6] -= n
+				if ps[i][p.col+1] == 0 ||
+					ps[i][p.row+6] == 0 {
 					if bn--; bn == 0 {
-						return struct{ n, s int }{n, ss[i][0]}
+						return struct{ n, p int }{n, ps[i][0]}
 					}
-					ss[i][0] = 0
+					ps[i][0] = 0
 				}
 			}
 		}
@@ -141,13 +141,13 @@ func genIndex(bs []board) (idx index) {
 	return idx
 }
 
-func genSums(bs []board) (ss [][]int) {
+func genPoints(bs []board) (ps [][]int) {
 	for _, b := range bs {
 		cols, rows := b.sumCols(), b.sumRows()
 		s := append([]int{b.sum()}, cols[:]...)
-		ss = append(ss, append(s, rows[:]...))
+		ps = append(ps, append(s, rows[:]...))
 	}
-	return ss
+	return ps
 }
 
 func scan(r io.Reader) (bs []board, ns []int) {
