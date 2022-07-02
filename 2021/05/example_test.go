@@ -13,10 +13,6 @@ import (
 //go:embed testdata/input
 var input string
 
-type line struct {
-	a, b point
-}
-
 type point struct {
 	x, y int
 }
@@ -55,9 +51,9 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) int {
-	return overlaps(scan(r), func(l line) bool {
+	return overlaps(scan(r), func(l [2]point) bool {
 		/* horizontal and vertical lines only */
-		return l.a.x == l.b.x || l.a.y == l.b.y
+		return l[0].x == l[1].x || l[0].y == l[1].y
 	}, func(ps []point) int {
 		if len(ps) == 1 {
 			return 0
@@ -68,7 +64,7 @@ func PartOne(r io.Reader) int {
 }
 
 func PartTwo(r io.ReadSeeker) int {
-	return overlaps(scan(r), func(l line) bool {
+	return overlaps(scan(r), func(l [2]point) bool {
 		/* all lines */
 		return true
 	}, func(ps []point) int {
@@ -80,7 +76,7 @@ func PartTwo(r io.ReadSeeker) int {
 	})
 }
 
-func overlaps(ls []line, fn func(line) bool, gn func([]point) int) int {
+func overlaps(ls [][2]point, fn func([2]point) bool, gn func([]point) int) int {
 	ps := points(ls, fn)
 	sort.Slice(ps, func(i, j int) bool {
 		return ps[i].cmp(ps[j])
@@ -88,24 +84,17 @@ func overlaps(ls []line, fn func(line) bool, gn func([]point) int) int {
 	return sum(group2(ps, gn))
 }
 
-func points(ls []line, fn func(line) bool) (ps []point) {
+func points(ls [][2]point, fn func([2]point) bool) (ps []point) {
 	for _, l := range ls {
 		if !fn(l) {
 			continue
 		}
-		ps = append(ps, point{l.a.x, l.a.y})
-		for l.a.x != l.b.x || l.a.y != l.b.y {
-			if l.a.x < l.b.x {
-				l.a.x++
-			} else if l.a.x > l.b.x {
-				l.a.x--
-			}
-			if l.a.y < l.b.y {
-				l.a.y++
-			} else if l.a.y > l.b.y {
-				l.a.y--
-			}
-			ps = append(ps, point{l.a.x, l.a.y})
+		v := point{delta(l[0].x, l[1].x), delta(l[0].y, l[1].y)}
+		ps = append(ps, l[0])
+		for l[0] != l[1] {
+			l[0].x += v.x
+			l[0].y += v.y
+			ps = append(ps, l[0])
 		}
 	}
 	return ps
@@ -126,6 +115,16 @@ func group2(ps []point, gn func([]point) int) (ns []int) {
 	return ns
 }
 
+func delta(a, b int) int {
+	if a < b {
+		return 1
+	} else if a > b {
+		return -1
+	} else {
+		return 0
+	}
+}
+
 func sum(ns []int) (rs int) {
 	for _, n := range ns {
 		rs += n
@@ -133,10 +132,10 @@ func sum(ns []int) (rs int) {
 	return rs
 }
 
-func scan(r io.Reader) (ls []line) {
+func scan(r io.Reader) (ls [][2]point) {
 	for {
-		var l line
-		if _, err := fmt.Fscanf(r, "%d,%d -> %d,%d\n", &l.a.x, &l.a.y, &l.b.x, &l.b.y); err == io.EOF {
+		var l [2]point
+		if _, err := fmt.Fscanf(r, "%d,%d -> %d,%d\n", &l[0].x, &l[0].y, &l[1].x, &l[1].y); err == io.EOF {
 			return ls
 		}
 		ls = append(ls, l)
