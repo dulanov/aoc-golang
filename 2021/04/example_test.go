@@ -37,29 +37,11 @@ type board struct {
 	nums [5][5]int
 }
 
-func (b board) newTransposed() (bt board) {
-	for i := 0; i < 5; i++ {
-		for j := 0; j < 5; j++ {
-			bt.nums[i][j] = b.nums[j][i]
-		}
+func (b board) sum() (n int) {
+	for _, ns := range b.nums {
+		n += sum(ns[:])
 	}
-	return bt
-}
-
-func (b board) sum() int {
-	sums := b.sumCols()
-	return sum(sums[:])
-}
-
-func (b board) sumCols() (sums [5]int) {
-	return b.newTransposed().sumRows()
-}
-
-func (b board) sumRows() (sums [5]int) {
-	for i, ns := range b.nums {
-		sums[i] = sum(ns[:])
-	}
-	return sums
+	return n
 }
 
 func ExamplePartOne() {
@@ -109,10 +91,10 @@ func score(bs []board, bn int, ns []int) (sc struct{ n, p int }) {
 			p, ok := idx.ps[i][n]
 			if ok && ps[i][0] != 0 {
 				ps[i][0] -= n
-				ps[i][p.col+1] -= n
-				ps[i][p.row+6] -= n
-				if ps[i][p.col+1] == 0 ||
-					ps[i][p.row+6] == 0 {
+				ps[i][p.col+1]++
+				ps[i][p.row+6]++
+				if ps[i][p.col+1] == 5 ||
+					ps[i][p.row+6] == 5 {
 					if bn--; bn == 0 {
 						return struct{ n, p int }{n, ps[i][0]}
 					}
@@ -143,9 +125,8 @@ func genIndex(bs []board) (idx index) {
 
 func genPoints(bs []board) (ps [][]int) {
 	for _, b := range bs {
-		cols, rows := b.sumCols(), b.sumRows()
-		s := append([]int{b.sum()}, cols[:]...)
-		ps = append(ps, append(s, rows[:]...))
+		pa := [11]int{b.sum()}
+		ps = append(ps, pa[:])
 	}
 	return ps
 }
