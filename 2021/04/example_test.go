@@ -119,43 +119,30 @@ func sum(ns []int) (rs int) {
 }
 
 func scan(r io.Reader) (bs []board, ns []int) {
-	var (
-		s                       string
-		n00, n01, n02, n03, n04 int
-		n10, n11, n12, n13, n14 int
-		n20, n21, n22, n23, n24 int
-		n30, n31, n32, n33, n34 int
-		n40, n41, n42, n43, n44 int
-	)
+	var s string
 	fmt.Fscanf(r, "%s\n", &s)
 	for _, s := range strings.Split(s, ",") {
 		n, _ := strconv.Atoi(s)
 		ns = append(ns, n)
 	}
 	for {
-		n, _ := fmt.Fscanf(r, `
+		var b board
+		if _, err := fmt.Fscanf(r, `
 %d%d%d%d%d
 %d%d%d%d%d
 %d%d%d%d%d
 %d%d%d%d%d
 %d%d%d%d%d
 `,
-			&n00, &n01, &n02, &n03, &n04,
-			&n10, &n11, &n12, &n13, &n14,
-			&n20, &n21, &n22, &n23, &n24,
-			&n30, &n31, &n32, &n33, &n34,
-			&n40, &n41, &n42, &n43, &n44)
-		if n == 0 {
-			break
+			&b.nums[0][0], &b.nums[0][1], &b.nums[0][2], &b.nums[0][3], &b.nums[0][4],
+			&b.nums[1][0], &b.nums[1][1], &b.nums[1][2], &b.nums[1][3], &b.nums[1][4],
+			&b.nums[2][0], &b.nums[2][1], &b.nums[2][2], &b.nums[2][3], &b.nums[2][4],
+			&b.nums[3][0], &b.nums[3][1], &b.nums[3][2], &b.nums[3][3], &b.nums[3][4],
+			&b.nums[4][0], &b.nums[4][1], &b.nums[4][2], &b.nums[4][3], &b.nums[4][4]); err == io.EOF {
+			return bs, ns
 		}
-		bs = append(bs, board{[5][5]int{
-			{n00, n01, n02, n03, n04},
-			{n10, n11, n12, n13, n14},
-			{n20, n21, n22, n23, n24},
-			{n30, n31, n32, n33, n34},
-			{n40, n41, n42, n43, n44}}})
+		bs = append(bs, b)
 	}
-	return bs, ns
 }
 
 const input_test = `7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1

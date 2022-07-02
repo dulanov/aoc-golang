@@ -56,28 +56,36 @@ func TestPartTwo(t *testing.T) {
 
 func PartOne(r io.Reader) int {
 	return overlaps(scan(r), func(l line) bool {
+		/* horizontal and vertical lines only */
 		return l.a.x == l.b.x || l.a.y == l.b.y
+	}, func(ps []point) int {
+		if len(ps) == 1 {
+			return 0
+		} else {
+			return 1 /* at least two lines overlap */
+		}
 	})
 }
 
 func PartTwo(r io.ReadSeeker) int {
 	return overlaps(scan(r), func(l line) bool {
+		/* all lines */
 		return true
+	}, func(ps []point) int {
+		if len(ps) == 1 {
+			return 0
+		} else {
+			return 1 /* at least two lines overlap */
+		}
 	})
 }
 
-func overlaps(ls []line, fn func(line) bool) int {
+func overlaps(ls []line, fn func(line) bool, gn func([]point) int) int {
 	ps := points(ls, fn)
 	sort.Slice(ps, func(i, j int) bool {
 		return ps[i].cmp(ps[j])
 	})
-	return sum(group2(ps, func(ps []point) int {
-		if len(ps) == 1 {
-			return 0
-		} else {
-			return 1
-		}
-	}))
+	return sum(group2(ps, gn))
 }
 
 func points(ls []line, fn func(line) bool) (ps []point) {
@@ -103,7 +111,7 @@ func points(ls []line, fn func(line) bool) (ps []point) {
 	return ps
 }
 
-func group2(ps []point, fn func([]point) int) (ns []int) {
+func group2(ps []point, gn func([]point) int) (ns []int) {
 	for i := 0; i < len(ps); i++ {
 		s := []point{ps[i]}
 		for j := i + 1; j < len(ps); j++ {
@@ -113,7 +121,7 @@ func group2(ps []point, fn func([]point) int) (ns []int) {
 			}
 			s = append(s, ps[j])
 		}
-		ns = append(ns, fn(s))
+		ns = append(ns, gn(s))
 	}
 	return ns
 }
@@ -126,16 +134,13 @@ func sum(ns []int) (rs int) {
 }
 
 func scan(r io.Reader) (ls []line) {
-	var (
-		x1, y1, x2, y2 int
-	)
 	for {
-		if n, _ := fmt.Fscanf(r, "%d,%d -> %d,%d\n", &x1, &y1, &x2, &y2); n == 0 {
-			break
+		var l line
+		if _, err := fmt.Fscanf(r, "%d,%d -> %d,%d\n", &l.a.x, &l.a.y, &l.b.x, &l.b.y); err == io.EOF {
+			return ls
 		}
-		ls = append(ls, line{point{x1, y1}, point{x2, y2}})
+		ls = append(ls, l)
 	}
-	return ls
 }
 
 const input_test = `0,9 -> 5,9
