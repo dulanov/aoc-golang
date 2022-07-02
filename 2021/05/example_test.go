@@ -93,19 +93,19 @@ func points(ls []line, fn func(line) bool) (ps []point) {
 		if !fn(l) {
 			continue
 		}
-		var dx, dy int
-		if l.a.x < l.b.x {
-			dx = 1
-		} else if l.a.x > l.b.x {
-			dx = -1
-		}
-		if l.a.y < l.b.y {
-			dy = 1
-		} else if l.a.y > l.b.y {
-			dy = -1
-		}
-		for i := 0; i <= ((l.b.x-l.a.x)*dx+(l.b.y-l.a.y)*dy)/(dx*dx+dy*dy); i++ {
-			ps = append(ps, point{l.a.x + dx*i, l.a.y + dy*i})
+		ps = append(ps, point{l.a.x, l.a.y})
+		for l.a.x != l.b.x || l.a.y != l.b.y {
+			if l.a.x < l.b.x {
+				l.a.x++
+			} else if l.a.x > l.b.x {
+				l.a.x--
+			}
+			if l.a.y < l.b.y {
+				l.a.y++
+			} else if l.a.y > l.b.y {
+				l.a.y--
+			}
+			ps = append(ps, point{l.a.x, l.a.y})
 		}
 	}
 	return ps
