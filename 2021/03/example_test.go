@@ -12,19 +12,6 @@ import (
 	"testing"
 )
 
-const input_test = `00100
-11110
-10110
-10111
-10101
-01111
-00111
-11100
-10000
-11001
-00010
-01010`
-
 //go:embed testdata/input
 var input string
 
@@ -89,9 +76,11 @@ func PartOne(r io.Reader) (rt rate) {
 
 func PartTwo(r io.ReadSeeker) (rt rating) {
 	ns, bits := scan(r)
-	sort.Slice(ns, func(i, j int) bool { return ns[i] < ns[j] })
+	sort.Slice(ns, func(i, j int) bool {
+		return ns[i] < ns[j]
+	})
 	rt.o2 = filter(ns, bits, func(ns0, ns1 []uint64) bool {
-		return len(ns1) >= len(ns0)
+		return len(ns0) <= len(ns1)
 	})
 	rt.co2 = filter(ns, bits, func(ns0, ns1 []uint64) bool {
 		return len(ns1) < len(ns0)
@@ -138,3 +127,16 @@ func scan(r io.Reader) (ns []uint64, bits int) {
 	}
 	return ns, bits
 }
+
+const input_test = `00100
+11110
+10110
+10111
+10101
+01111
+00111
+11100
+10000
+11001
+00010
+01010`

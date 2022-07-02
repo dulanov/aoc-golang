@@ -11,17 +11,6 @@ import (
 	"testing"
 )
 
-const input_test = `199
-200
-208
-210
-200
-207
-240
-269
-260
-263`
-
 //go:embed testdata/input
 var input string
 
@@ -81,3 +70,14 @@ func scan(r io.Reader) (ns []int) {
 	}
 	return ns
 }
+
+const input_test = `199
+200
+208
+210
+200
+207
+240
+269
+260
+263`
