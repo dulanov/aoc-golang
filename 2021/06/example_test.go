@@ -55,22 +55,16 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader, days int) int {
-	var ps [DaysFirstCycle + 1]int
-	for _, n := range scan(r) {
-		ps[n]++
-	}
-	for i := 0; i < days; i++ {
-		n := ps[0]
-		copy(ps[:len(ps)-1], ps[1:])
-		ps[DaysNextCycles] += n
-		ps[DaysFirstCycle] = n
-	}
-	return sum(ps[:])
+	return sim(scan(r), days)
 }
 
 func PartTwo(r io.ReadSeeker, days int) int {
+	return sim(scan(r), days)
+}
+
+func sim(ns []int, days int) int {
 	var ps [DaysFirstCycle + 1]int
-	for _, n := range scan(r) {
+	for _, n := range ns {
 		ps[n]++
 	}
 	for i := 0; i < days; i++ {
