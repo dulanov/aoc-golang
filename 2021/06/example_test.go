@@ -25,9 +25,9 @@ func ExamplePartOne() {
 }
 
 func ExamplePartTwo() {
-	fmt.Println(PartTwo(strings.NewReader(input)))
+	fmt.Println(PartTwo(strings.NewReader(input), 256))
 	// Output:
-	// 0
+	// 1632146183902
 }
 
 func TestPartOne(t *testing.T) {
@@ -47,8 +47,8 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test))
-	want := 0
+	got := PartTwo(strings.NewReader(input_test), 256)
+	want := 26984457539
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
 	}
@@ -68,8 +68,18 @@ func PartOne(r io.Reader, days int) int {
 	return sum(ps[:])
 }
 
-func PartTwo(r io.ReadSeeker) int {
-	return 0
+func PartTwo(r io.ReadSeeker, days int) int {
+	var ps [DaysFirstCycle + 1]int
+	for _, n := range scan(r) {
+		ps[n]++
+	}
+	for i := 0; i < days; i++ {
+		n := ps[0]
+		copy(ps[:len(ps)-1], ps[1:])
+		ps[DaysNextCycles] += n
+		ps[DaysFirstCycle] = n
+	}
+	return sum(ps[:])
 }
 
 func sum(ns []int) (rs int) {
