@@ -89,11 +89,13 @@ func points(ls [][2]point, fn func([2]point) bool) (ps []point) {
 		if !fn(l) {
 			continue
 		}
-		v := point{delta(l[0].x, l[1].x), delta(l[0].y, l[1].y)}
+		dp := point{
+			dlt(l[0].x, l[1].x),
+			dlt(l[0].y, l[1].y)}
 		ps = append(ps, l[0])
 		for l[0] != l[1] {
-			l[0].x += v.x
-			l[0].y += v.y
+			l[0].x += dp.x
+			l[0].y += dp.y
 			ps = append(ps, l[0])
 		}
 	}
@@ -115,7 +117,7 @@ func group2(ps []point, gn func([]point) int) (ns []int) {
 	return ns
 }
 
-func delta(a, b int) int {
+func dlt(a, b int) int {
 	if a < b {
 		return 1
 	} else if a > b {
