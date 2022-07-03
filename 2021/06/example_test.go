@@ -14,8 +14,8 @@ import (
 var input string
 
 const (
-	DaysFirstCycle = 8
-	DaysNextCycles = 6
+	DaysFirstCycle = 9
+	DaysNextCycles = 7
 )
 
 func ExamplePartOne() {
@@ -25,7 +25,7 @@ func ExamplePartOne() {
 }
 
 func ExamplePartTwo() {
-	fmt.Println(PartTwo(strings.NewReader(input), 256))
+	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
 	// 1632146183902
 }
@@ -47,7 +47,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test), 256)
+	got := PartTwo(strings.NewReader(input_test))
 	want := 26984457539
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
@@ -58,22 +58,19 @@ func PartOne(r io.Reader, days int) int {
 	return sim(scan(r), days)
 }
 
-func PartTwo(r io.ReadSeeker, days int) int {
-	return sim(scan(r), days)
+func PartTwo(r io.ReadSeeker) int {
+	return sim(scan(r), 256)
 }
 
 func sim(ns []int, days int) int {
-	var ps [DaysFirstCycle + 1]int
+	var fs [DaysFirstCycle]int
 	for _, n := range ns {
-		ps[n]++
+		fs[n]++
 	}
 	for i := 0; i < days; i++ {
-		n := ps[0]
-		copy(ps[:len(ps)-1], ps[1:])
-		ps[DaysNextCycles] += n
-		ps[DaysFirstCycle] = n
+		fs[(i+DaysNextCycles)%DaysFirstCycle] += fs[i%DaysFirstCycle]
 	}
-	return sum(ps[:])
+	return sum(fs[:])
 }
 
 func sum(ns []int) (rs int) {
