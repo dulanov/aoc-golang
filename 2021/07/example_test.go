@@ -57,18 +57,13 @@ func PartTwo(r io.ReadSeeker) (cs int) {
 	})
 }
 
-func cost(ns []int, fr int, fn func(int) int) (cs int) {
-	for i := fr; ; i++ {
-		var sm int
-		for _, n := range ns {
-			sm += fn(abs(n - i))
-		}
-		if cs != 0 && cs < sm {
-			break
-		}
-		cs = sm
+func cost(ns []int, pos int, fn func(int) int) int {
+	var cs1, cs2 int
+	for _, n := range ns {
+		cs1 += fn(abs(n - pos))
+		cs2 += fn(abs(n - pos - 1))
 	}
-	return cs
+	return min(cs1, cs2)
 }
 
 func abs(n int) int {
@@ -76,6 +71,13 @@ func abs(n int) int {
 		return -n
 	}
 	return n
+}
+
+func min(n1, n2 int) int {
+	if n1 < n2 {
+		return n1
+	}
+	return n2
 }
 
 func sum(ns []int) (rs int) {
