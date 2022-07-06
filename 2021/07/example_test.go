@@ -45,25 +45,30 @@ func TestPartTwo(t *testing.T) {
 func PartOne(r io.Reader) (cs int) {
 	ns := scan(r)
 	sort.Ints(ns)
-	return cost(ns, ns[len(ns)>>1], func(n int) int {
+	return calc(ns, ns[len(ns)>>1], func(n int) int {
 		return n
 	})
 }
 
 func PartTwo(r io.ReadSeeker) (cs int) {
 	ns := scan(r)
-	return cost(ns, sum(ns)/len(ns), func(n int) int {
+	return calc(ns, sum(ns)/len(ns), func(n int) int {
 		return (n * (n + 1)) >> 1
 	})
 }
 
-func cost(ns []int, pos int, fn func(int) int) int {
-	var cs1, cs2 int
+func calc(ns []int, pos int, fn func(int) int) (cs int) {
+	ch := make(chan int)
+	go func() { ch <- cost(ns, pos, fn) }()
+	go func() { ch <- cost(ns, pos+1, fn) }()
+	return min(<-ch, <-ch)
+}
+
+func cost(ns []int, pos int, fn func(int) int) (cs int) {
 	for _, n := range ns {
-		cs1 += fn(abs(n - pos))
-		cs2 += fn(abs(n - pos - 1))
+		cs += fn(abs(n - pos))
 	}
-	return min(cs1, cs2)
+	return cs
 }
 
 func abs(n int) int {
