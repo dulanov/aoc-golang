@@ -103,8 +103,8 @@ func decode(s string, m [3]byte) (n int) {
 			n = 2
 		}
 	case 6:
-		if strings.IndexByte(s, m[0] /* 'ac' */) == -1 ||
-			strings.IndexByte(s, m[1] /* 'ac' */) == -1 {
+		if strings.IndexByte(s, m[0] /* 'a|c' */) == -1 ||
+			strings.IndexByte(s, m[1] /* 'a|c' */) == -1 {
 			n = 6
 		} else if strings.IndexByte(s, m[2] /* 'e' */) == -1 {
 			n = 9
