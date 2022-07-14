@@ -63,7 +63,7 @@ func PartOne(r io.Reader) int {
 	})
 }
 
-func PartTwo(r io.ReadSeeker) int {
+func PartTwo(r io.Reader) int {
 	return overlaps(scan(r), func(l [2]point) bool {
 		/* all lines */
 		return true
