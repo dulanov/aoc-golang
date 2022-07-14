@@ -58,7 +58,7 @@ func PartOne(r io.Reader, days int) int {
 	return sim(scan(r), days)
 }
 
-func PartTwo(r io.ReadSeeker) int {
+func PartTwo(r io.Reader) int {
 	return sim(scan(r), 256)
 }
 
