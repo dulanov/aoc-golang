@@ -63,7 +63,7 @@ func PartOne(r io.Reader) (sc struct{ n, p int }) {
 	return score(bs, 1, ns)
 }
 
-func PartTwo(r io.ReadSeeker) (sc struct{ n, p int }) {
+func PartTwo(r io.Reader) (sc struct{ n, p int }) {
 	bs, ns := scan(r)
 	return score(bs, len(bs), ns)
 }
