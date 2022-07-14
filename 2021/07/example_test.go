@@ -50,7 +50,7 @@ func PartOne(r io.Reader) (cs int) {
 	})
 }
 
-func PartTwo(r io.ReadSeeker) (cs int) {
+func PartTwo(r io.Reader) (cs int) {
 	ns := scan(r)
 	return calc(ns, sum(ns)/len(ns), func(n int) int {
 		return (n * (n + 1)) >> 1
