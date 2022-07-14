@@ -74,7 +74,7 @@ func PartOne(r io.Reader) (rt rate) {
 	return rt
 }
 
-func PartTwo(r io.ReadSeeker) (rt rating) {
+func PartTwo(r io.Reader) (rt rating) {
 	ns, bits := scan(r)
 	sort.Slice(ns, func(i, j int) bool {
 		return ns[i] < ns[j]
