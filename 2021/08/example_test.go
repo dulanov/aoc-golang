@@ -52,7 +52,7 @@ func PartOne(r io.Reader) (n int) {
 	return n
 }
 
-func PartTwo(r io.ReadSeeker) (n int) {
+func PartTwo(r io.Reader) (n int) {
 	for _, e := range scan(r) {
 		m, v := demap(e[0]), 0
 		for _, s := range e[1] {
