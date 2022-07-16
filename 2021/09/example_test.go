@@ -1,4 +1,4 @@
-// https://adventofcode.com/2021/day/09
+// https://adventofcode.com/2021/day/9
 package d09_test
 
 import (
@@ -77,6 +77,7 @@ func lowest(hs [][]uint8) (ps []point) {
 	return ps
 }
 
+// https://en.wikipedia.org/wiki/Flood_fill#Span_Filling
 func sizes(hs [][]uint8, ps []point) (ns []int) {
 	vs := make([][]bool, len(hs))
 	for i := range vs {
@@ -86,24 +87,17 @@ func sizes(hs [][]uint8, ps []point) (ns []int) {
 		var n int
 		for st := []point{p}; len(st) != 0; {
 			p, st = st[len(st)-1], st[:len(st)-1]
-			rb, rc, rn := hs[p.col-1], hs[p.col], hs[p.col+1]
-			vb, vc, vn := vs[p.col-1], vs[p.col], vs[p.col+1]
-			if vc[p.row] {
+			if vs[p.col][p.row] {
 				continue
 			}
-			for p.row--; rc[p.row] != 9; p.row-- {
+			for p.row--; hs[p.col][p.row] != 9; p.row-- {
 			}
-			for i, js := p.row+1, [2]bool{}; rc[i] != 9; i++ {
-				n, vc[i] = n+1, true
-				if rb[i] == 9 {
-					js[0] = false
-				} else if !js[0] && !vb[i] {
-					js[0], st = true, append(st, point{p.col - 1, i})
-				}
-				if rn[i] == 9 {
-					js[1] = false
-				} else if !js[1] && !vn[i] {
-					js[1], st = true, append(st, point{p.col + 1, i})
+			for i := p.row + 1; hs[p.col][i] != 9; i++ {
+				n, vs[p.col][i] = n+1, true
+				for _, j := range []int{p.col - 1, p.col + 1} {
+					if hs[j][i] != 9 && (hs[j][i-1] == 9 || i == p.row+1) {
+						st = append(st, point{j, i})
+					}
 				}
 			}
 		}

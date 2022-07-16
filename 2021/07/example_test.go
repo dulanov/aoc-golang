@@ -1,4 +1,4 @@
-// https://adventofcode.com/2021/day/07
+// https://adventofcode.com/2021/day/7
 package d07_test
 
 import (
