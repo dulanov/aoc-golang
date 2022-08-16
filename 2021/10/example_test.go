@@ -60,6 +60,13 @@ func (s stack) push(c chunk) stack {
 	return append(s, c.closedWith())
 }
 
+func (s stack) pop() (stack, chunk, bool) {
+	if len(s) == 0 {
+		return s, 0, false
+	}
+	return s[:len(s)-1], s[len(s)-1], true
+}
+
 func (s stack) drop(c chunk) (stack, bool) {
 	if len(s) == 0 || s[len(s)-1] != c {
 		return s, false
@@ -127,12 +134,12 @@ func score(l []chunk) (int, int) {
 			return c.ilglScore(), 0
 		}
 	}
-	return 0, compl(st)
+	return 0, complete(st)
 }
 
-func compl(st stack) (sc int) {
-	for i := len(st) - 1; i >= 0; i-- {
-		sc = sc*5 + st[i].cmplScore()
+func complete(st stack) (sc int) {
+	for st, c, ok := st.pop(); ok; st, c, ok = st.pop() {
+		sc = sc*5 + c.cmplScore()
 	}
 	return sc
 }
