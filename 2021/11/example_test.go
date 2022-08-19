@@ -22,7 +22,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 471
 }
 
 func TestPartOne(t *testing.T) {
@@ -35,7 +35,7 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(input_test))
-	want := 0
+	want := 195
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
 	}
@@ -49,8 +49,14 @@ func PartOne(r io.Reader) (n int) {
 	return n
 }
 
-func PartTwo(r io.Reader) int {
-	return 0
+func PartTwo(r io.Reader) (n int) {
+	rs := scan(r)
+	for n++; ; n++ {
+		if n := step(rs); n == len(rs)*len(rs[0]) {
+			break
+		}
+	}
+	return n
 }
 
 func step(rs [][]uint8) (n int) {
