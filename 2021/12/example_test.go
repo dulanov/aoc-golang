@@ -16,9 +16,13 @@ var input string
 
 type stack[T comparable] []T
 
+func (s stack[T]) empty() bool {
+	return len(s) == 0
+}
+
 func (s stack[T]) contains(v T) bool {
-	for _, s := range s {
-		if s == v {
+	for _, x := range s {
+		if x == v {
 			return true
 		}
 	}
@@ -50,7 +54,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 104834
 }
 
 func TestPartOne(t *testing.T) {
@@ -80,10 +84,28 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test0))
-	want := 0
-	if got != want {
-		t.Errorf("got %d; want %d", got, want)
+	for i, tc := range []struct {
+		in   string
+		want int
+	}{
+		{
+			in:   input_test0,
+			want: 36,
+		},
+		{
+			in:   input_test1,
+			want: 103,
+		},
+		{
+			in:   input_test2,
+			want: 3509,
+		},
+	} {
+		t.Run(fmt.Sprintf("input_test%d", i), func(t *testing.T) {
+			if got := PartTwo(strings.NewReader(tc.in)); got != tc.want {
+				t.Errorf("got %d; want %d", got, tc.want)
+			}
+		})
 	}
 }
 
@@ -92,28 +114,44 @@ func PartOne(r io.Reader) int {
 	sort.Slice(cs, func(i, j int) bool {
 		return cs[i].name < cs[j].name
 	})
-	return len(paths(cs))
+	return len(paths(cs, 0))
 }
 
 func PartTwo(r io.Reader) int {
-	return 0
+	cs := scan(r)
+	sort.Slice(cs, func(i, j int) bool {
+		return cs[i].name < cs[j].name
+	})
+	return len(paths(cs, 1))
 }
 
-func paths(cs []cave) (ps []string) {
-	lbs, st := stack[string]{}, stack[string]{"start"}
-	for len(st) != 0 {
+func paths(cs []cave, lm int) (ps []string) {
+	lbl, lbs, st := lm, stack[string]{}, stack[string]{"start"}
+	for !st.empty() {
 		var s string
 		st, s, _ = st.pop()
 		switch s {
-		case "":
-			lbs, _, _ = lbs.pop()
+		case "start":
+			if lbs.empty() {
+				lbs, st = lbs.push(s), st.push(search(cs, s).paths...)
+			}
 		case "end":
 			ps = append(ps, strings.Join(append(lbs, "end"), ","))
+		case "*":
+			lbl++
+			fallthrough
+		case "+":
+			lbs, _, _ = lbs.pop()
 		default:
-			if strings.ToUpper(s) == s || !lbs.contains(s) {
-				lbs, st = lbs.push(s), st.push("")
-				st = st.push(search(cs, s).paths...)
+			if strings.ToLower(s) == s && lbs.contains(s) {
+				if lbl == 0 {
+					continue
+				}
+				lbl, st = lbl-1, st.push("*")
+			} else {
+				st = st.push("+")
 			}
+			lbs, st = lbs.push(s), st.push(search(cs, s).paths...)
 		}
 	}
 	return ps
