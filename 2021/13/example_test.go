@@ -35,10 +35,6 @@ func (p point) cmp(p2 point) bool {
 		(p.x == p2.x && p.y < p2.y)
 }
 
-func (p point) rev() point {
-	return point{p.y, p.x}
-}
-
 func ExamplePartOne() {
 	fmt.Println(PartOne(strings.NewReader(input)))
 	// Output:
