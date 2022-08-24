@@ -48,7 +48,12 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// #....#..#.###..####.###..###..###..#..#.
+	// #....#.#..#..#.#....#..#.#..#.#..#.#.#..
+	// #....##...#..#.###..###..#..#.#..#.##...
+	// #....#.#..###..#....#..#.###..###..#.#..
+	// #....#.#..#.#..#....#..#.#....#.#..#.#..
+	// ####.#..#.#..#.####.###..#....#..#.#..#.
 }
 
 func TestPartOne(t *testing.T) {
@@ -61,48 +66,85 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(input_test))
-	want := 0
+	want := `#####
+#...#
+#...#
+#...#
+#####
+.....
+.....`
 	if got != want {
-		t.Errorf("got %d; want %d", got, want)
+		t.Errorf("got \n%v; want \n%v", got, want)
 	}
 }
 
 func PartOne(r io.Reader) int {
 	ps, ls := scan(r)
-	return len(apply(ps, ls[0], 1))
-}
-
-func PartTwo(r io.Reader) int {
-	return 0
-}
-
-func apply(ps []point, l line, n int) []point {
-	rs, n := make([]point, 0, len(ps)), ((l.p+1)<<1)/((1<<n-1)+1)
-	for _, p := range ps {
-		if l.d == dirV {
-			p = p.rev()
-		}
-		if m := p.x / n; m%2 == 0 {
-			p = point{p.x - n*m, p.y}
-		} else {
-			p = point{n*(m+1) - p.x - 2, p.y}
-		}
-		if l.d == dirH {
-			rs = append(rs, p)
-		} else {
-			rs = append(rs, p.rev())
-		}
-	}
-	sort.Slice(rs, func(i, j int) bool {
-		return rs[i].cmp(rs[j])
+	fold(ps, ls[0], 1)
+	sort.Slice(ps, func(i, j int) bool {
+		return ps[i].cmp(ps[j])
 	})
-	pr := 0
-	for i := 1; i < len(rs); i++ {
-		if rs[i] != rs[i-1] {
-			rs[pr+1], pr = rs[i], pr+1
+	return len(uniq(ps))
+}
+
+func PartTwo(r io.Reader) string {
+	ps, ls := scan(r)
+	l1, l2, n1, n2 := ls[0], line{}, 1, 0
+	for _, l := range ls[1:] {
+		if l1.d != l.d && l2.p == 0 {
+			l2 = l
+		}
+		if l1.d == l.d {
+			n1++
+		} else {
+			n2++
 		}
 	}
-	return rs[:pr+1]
+	if l1.d == dirH {
+		l1, l2, n1, n2 = l2, l1, n2, n1
+	}
+	h := fold(ps, l1, n1)
+	w := fold(ps, l2, n2)
+	ss := make([]string, h)
+	for i := range ss {
+		ss[i] = strings.Repeat(".", w)
+	}
+	sort.Slice(ps, func(i, j int) bool {
+		return ps[i].cmp(ps[j])
+	})
+	for _, p := range uniq(ps) {
+		ss[p.y] = string(ss[p.y][:p.x]) + "#" + string(ss[p.y][p.x+1:])
+	}
+	return strings.Join(ss, "\n")
+}
+
+func fold(ps []point, l line, n int) int {
+	n = ((l.p + 1) << 1) / ((1<<n - 1) + 1)
+	for i := range ps {
+		if l.d == dirH {
+			ps[i].x = abs(ps[i].x - (ps[i].x/n)*n - ((ps[i].x/n)%2)*(n-2))
+		} else {
+			ps[i].y = abs(ps[i].y - (ps[i].y/n)*n - ((ps[i].y/n)%2)*(n-2))
+		}
+	}
+	return n - 1
+}
+
+func uniq(ps []point) []point {
+	pr := 0
+	for i := 1; i < len(ps); i++ {
+		if ps[i] != ps[i-1] {
+			ps[pr+1], pr = ps[i], pr+1
+		}
+	}
+	return ps[:pr+1]
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
 }
 
 func scan(r io.Reader) (ps []point, ls []line) {
