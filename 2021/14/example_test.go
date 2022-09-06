@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"math"
 	"reflect"
 	"sort"
 	"strings"
@@ -14,27 +15,32 @@ import (
 //go:embed testdata/input
 var input string
 
+type res struct {
+	pl byte
+	nm int
+}
+
 func ExamplePartOne() {
-	ns := PartOne(strings.NewReader(input))
-	fmt.Println(ns[len(ns)-1][1] - ns[0][1])
+	rs := PartOne(strings.NewReader(input))
+	fmt.Println(rs[len(rs)-1].nm - rs[0].nm)
 	// Output:
 	// 2967
 }
 
 func ExamplePartTwo() {
-	ns := PartTwo(strings.NewReader(input))
-	fmt.Println(ns[len(ns)-1][1] - ns[0][1])
+	rs := PartTwo(strings.NewReader(input))
+	fmt.Println(rs[len(rs)-1].nm - rs[0].nm)
 	// Output:
 	// 3692219987038
 }
 
 func TestPartOne(t *testing.T) {
 	got := PartOne(strings.NewReader(input_test))
-	want := [][2]int{
-		{int('H'), 161},
-		{int('C'), 298},
-		{int('N'), 865},
-		{int('B'), 1749}}
+	want := []res{
+		{'H', 161},
+		{'C', 298},
+		{'N', 865},
+		{'B', 1749}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v; want %v", got, want)
 	}
@@ -42,76 +48,82 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(input_test))
-	want := [...][2]int{
-		{int('H'), 3849876073},
-		{int('B'), 2192039569602}}
-	if got := [...][2]int{got[0], got[len(got)-1]}; got != want {
+	want := [...]res{
+		{'H', 3849876073},
+		{'B', 2192039569602}}
+	if got := [...]res{got[0], got[len(got)-1]}; got != want {
 		t.Errorf("got %v; want %v", got, want)
 	}
 }
 
-func PartOne(r io.Reader) (ns [][2]int) {
-	tl, rs := scan(r)
-	ns = times(tl[len(tl)-1], steps(tl, rs, 10))
-	sort.Slice(ns, func(i, j int) bool {
-		return ns[i][1] < ns[j][1]
+func PartOne(r io.Reader) (rs []res) {
+	tl, rls := scan(r)
+	sort.Slice(rls, func(i, j int) bool {
+		return rls[i][0] < rls[j][0]
 	})
-	return ns
+	rs = steps(tl, rls, 10)
+	sort.Slice(rs, func(i, j int) bool {
+		return rs[i].nm < rs[j].nm
+	})
+	return rs
 }
 
-func PartTwo(r io.Reader) (ns [][2]int) {
-	tl, rs := scan(r)
-	ns = times(tl[len(tl)-1], steps(tl, rs, 40))
-	sort.Slice(ns, func(i, j int) bool {
-		return ns[i][1] < ns[j][1]
+func PartTwo(r io.Reader) (rs []res) {
+	tl, rls := scan(r)
+	sort.Slice(rls, func(i, j int) bool {
+		return rls[i][0] < rls[j][0]
 	})
-	return ns
+	rs = steps(tl, rls, 40)
+	sort.Slice(rs, func(i, j int) bool {
+		return rs[i].nm < rs[j].nm
+	})
+	return rs
 }
 
-func steps(tl []byte, rs [][3]byte, n int) (ps []struct {
-	pr [2]byte
-	nm int
-}) {
-	rm := make(map[[2]byte]byte)
-	for _, r := range rs {
-		rm[[2]byte{r[0], r[1]}] = r[2]
+func steps(tl []byte, rls [][3]byte, n int) (rs []res) {
+	pm := make(map[[2]byte]int, len(rls))
+	for i, r := range rls {
+		pm[[2]byte{r[0], r[1]}] = i
 	}
-	pm := make(map[[2]byte]int, len(rm))
+	ps := make([][2]int, len(rls))
+	for i, r := range rls {
+		ps[i] = [2]int{
+			pm[[2]byte{r[0], r[2]}],
+			pm[[2]byte{r[2], r[1]}]}
+	}
+	ns := make([]int, len(rls))
 	for i := 0; i < len(tl)-1; i++ {
-		pm[[2]byte{tl[i], tl[i+1]}]++
+		ns[pm[[2]byte{tl[i], tl[i+1]}]]++
 	}
-	for i := 0; i < n; i++ {
-		pm2 := make(map[[2]byte]int, len(rm))
-		for pr, n := range pm {
-			pm2[[2]byte{pr[0], rm[pr]}] += n
-			pm2[[2]byte{rm[pr], pr[1]}] += n
+	for i, nx := 0, make([]int, len(rls)); i < n; i++ {
+		for j, n := range ns {
+			nx[ps[j][0]] += n
+			nx[ps[j][1]] += n
 		}
-		pm = pm2
+		ns, nx = nx, ns
+		for j := range nx {
+			nx[j] = 0
+		}
 	}
-	for pr, n := range pm {
-		ps = append(ps, struct {
-			pr [2]byte
-			nm int
-		}{pr, n})
+	rs = make([]res, int(math.Sqrt(float64(len(rls)))))
+	for i, j := 0, 0; i < len(rs); i, j = i+1, j+len(rs) {
+		rs[i] = res{rls[j][0], sum(ns[j : j+len(rs)])}
 	}
-	return ps
+	rs[sort.Search(len(rs), func(i int) bool {
+		a, b := rs[i], tl[len(tl)-1]
+		return a.pl >= b
+	})].nm++
+	return rs
 }
 
-func times(lt byte, ps []struct {
-	pr [2]byte
-	nm int
-}) (ns [][2]int) {
-	nm := map[byte]int{lt: 1}
-	for _, p := range ps {
-		nm[p.pr[0]] += p.nm
+func sum(ns []int) (rs int) {
+	for _, n := range ns {
+		rs += n
 	}
-	for b, n := range nm {
-		ns = append(ns, [2]int{int(b), n})
-	}
-	return ns
+	return rs
 }
 
-func scan(r io.Reader) (tl []byte, rs [][3]byte) {
+func scan(r io.Reader) (tl []byte, rls [][3]byte) {
 	var s string
 	var bs [3]byte
 	fmt.Fscanf(r, "%s\n\n", &s)
@@ -119,9 +131,9 @@ func scan(r io.Reader) (tl []byte, rs [][3]byte) {
 		if _, err := fmt.Fscanf(r, "%c%c -> %c\n", &bs[0], &bs[1], &bs[2]); err == io.EOF {
 			break
 		}
-		rs = append(rs, bs)
+		rls = append(rls, bs)
 	}
-	return []byte(s), rs
+	return []byte(s), rls
 }
 
 const input_test = `NNCB
