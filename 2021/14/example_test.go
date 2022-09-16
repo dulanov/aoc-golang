@@ -99,11 +99,9 @@ func steps(tl []byte, rls [][3]byte, n int) (rs []res) {
 		for j, n := range ns {
 			nx[ps[j][0]] += n
 			nx[ps[j][1]] += n
+			ns[j] = 0
 		}
 		ns, nx = nx, ns
-		for j := range nx {
-			nx[j] = 0
-		}
 	}
 	rs = make([]res, int(math.Sqrt(float64(len(rls)))))
 	for i, j := 0, 0; i < len(rs); i, j = i+1, j+len(rs) {
