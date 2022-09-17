@@ -43,7 +43,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 2835
 }
 
 func TestPartOne(t *testing.T) {
@@ -56,14 +56,33 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(input_test))
-	want := 0
+	want := 315
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
 	}
 }
 
 func PartOne(r io.Reader) (n int) {
-	ls := scan(r)
+	return lowest(scan(r))
+}
+
+func PartTwo(r io.Reader) (n int) {
+	return lowest(expand(scan(r), 5))
+}
+
+func expand(ls [][]uint8, n int) [][]uint8 {
+	rs := make([][]uint8, len(ls)*n)
+	for i := range rs {
+		rs[i] = make([]uint8, len(ls[0])*n)
+		for j := range rs[i] {
+			rs[i][j] = (ls[i%len(ls)][j%len(ls[0])]-1+
+				uint8(i/len(ls))+uint8(j/len(ls[0])))%9 + 1
+		}
+	}
+	return rs
+}
+
+func lowest(ls [][]uint8) (n int) {
 	vs := make([][]bool, len(ls))
 	for i := range vs {
 		vs[i] = make([]bool, len(ls[0]))
@@ -88,10 +107,6 @@ func PartOne(r io.Reader) (n int) {
 			}
 		}
 	}
-}
-
-func PartTwo(r io.Reader) (n int) {
-	return n
 }
 
 func scan(r io.Reader) (ls [][]uint8) {
