@@ -15,6 +15,7 @@ jobs:
     - name: Setup go-${{ matrix.go-version }}
       uses: actions/setup-go@v3
       with:
+        cache: true
         go-version: ${{ matrix.go-version }}
     - run: go version
     - name: Install staticcheck
@@ -31,4 +32,3 @@ jobs:
       run: go mod download
     - name: Run tests
       run: go test -race -vet off -v ./...
-   
