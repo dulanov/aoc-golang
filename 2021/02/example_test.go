@@ -42,7 +42,7 @@ func ExamplePartTwo() {
 }
 
 func TestPartOne(t *testing.T) {
-	got := PartOne(strings.NewReader(input_test))
+	got := PartOne(strings.NewReader(inputTest))
 	want := struct{ h, v int }{15, 10}
 	if got != want {
 		t.Errorf("got %+v; want %+v", got, want)
@@ -50,7 +50,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test))
+	got := PartTwo(strings.NewReader(inputTest))
 	want := struct{ h, v int }{15, 60}
 	if got != want {
 		t.Errorf("got %+v; want %+v", got, want)
@@ -96,7 +96,7 @@ func scan(r io.Reader) (ops []op) {
 	return ops
 }
 
-const input_test = `forward 5
+const inputTest = `forward 5
 down 5
 forward 8
 up 3

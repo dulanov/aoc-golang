@@ -38,7 +38,7 @@ func TestPartOne(t *testing.T) {
 		{80, 5934},
 	} {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			got := PartOne(strings.NewReader(input_test), tt.days)
+			got := PartOne(strings.NewReader(inputTest), tt.days)
 			if got != tt.want {
 				t.Errorf("got %d; want %d", got, tt.want)
 			}
@@ -47,7 +47,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test))
+	got := PartTwo(strings.NewReader(inputTest))
 	want := 26984457539
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
@@ -89,4 +89,4 @@ func scan(r io.Reader) (ns []int) {
 	return ns
 }
 
-const input_test = `3,4,3,1,2`
+const inputTest = `3,4,3,1,2`

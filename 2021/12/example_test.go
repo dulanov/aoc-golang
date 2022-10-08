@@ -63,19 +63,19 @@ func TestPartOne(t *testing.T) {
 		want int
 	}{
 		{
-			in:   input_test0,
+			in:   inputTest0,
 			want: 10,
 		},
 		{
-			in:   input_test1,
+			in:   inputTest1,
 			want: 19,
 		},
 		{
-			in:   input_test2,
+			in:   inputTest2,
 			want: 226,
 		},
 	} {
-		t.Run(fmt.Sprintf("input_test%d", i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("inputTest%d", i), func(t *testing.T) {
 			if got := PartOne(strings.NewReader(tc.in)); got != tc.want {
 				t.Errorf("got %d; want %d", got, tc.want)
 			}
@@ -89,19 +89,19 @@ func TestPartTwo(t *testing.T) {
 		want int
 	}{
 		{
-			in:   input_test0,
+			in:   inputTest0,
 			want: 36,
 		},
 		{
-			in:   input_test1,
+			in:   inputTest1,
 			want: 103,
 		},
 		{
-			in:   input_test2,
+			in:   inputTest2,
 			want: 3509,
 		},
 	} {
-		t.Run(fmt.Sprintf("input_test%d", i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("inputTest%d", i), func(t *testing.T) {
 			if got := PartTwo(strings.NewReader(tc.in)); got != tc.want {
 				t.Errorf("got %d; want %d", got, tc.want)
 			}
@@ -182,7 +182,7 @@ func scan(r io.Reader) (cs []cave) {
 }
 
 const (
-	input_test0 = `start-A
+	inputTest0 = `start-A
 start-b
 A-c
 A-b
@@ -190,7 +190,7 @@ b-d
 A-end
 b-end`
 
-	input_test1 = `dc-end
+	inputTest1 = `dc-end
 HN-start
 start-kj
 dc-start
@@ -201,7 +201,7 @@ kj-sa
 kj-HN
 kj-dc`
 
-	input_test2 = `fs-end
+	inputTest2 = `fs-end
 he-DX
 fs-he
 start-DX

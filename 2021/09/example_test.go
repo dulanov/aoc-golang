@@ -31,7 +31,7 @@ func ExamplePartTwo() {
 }
 
 func TestPartOne(t *testing.T) {
-	got := PartOne(strings.NewReader(input_test))
+	got := PartOne(strings.NewReader(inputTest))
 	want := 15
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
@@ -39,7 +39,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test))
+	got := PartTwo(strings.NewReader(inputTest))
 	want := 1134
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
@@ -134,7 +134,7 @@ func scan(r io.Reader) (hs [][]uint8) {
 	return hs
 }
 
-const input_test = `2199943210
+const inputTest = `2199943210
 3987894921
 9856789892
 8767896789

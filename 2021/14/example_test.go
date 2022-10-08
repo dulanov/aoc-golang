@@ -35,7 +35,7 @@ func ExamplePartTwo() {
 }
 
 func TestPartOne(t *testing.T) {
-	got := PartOne(strings.NewReader(input_test))
+	got := PartOne(strings.NewReader(inputTest))
 	want := []res{
 		{'H', 161},
 		{'C', 298},
@@ -47,7 +47,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test))
+	got := PartTwo(strings.NewReader(inputTest))
 	want := [...]res{
 		{'H', 3849876073},
 		{'B', 2192039569602}}
@@ -134,7 +134,7 @@ func scan(r io.Reader) (tl []byte, rls [][3]byte) {
 	return []byte(s), rls
 }
 
-const input_test = `NNCB
+const inputTest = `NNCB
 
 CH -> B
 HH -> N

@@ -46,7 +46,7 @@ func ExamplePartTwo() {
 }
 
 func TestPartOne(t *testing.T) {
-	got := PartOne(strings.NewReader(input_test))
+	got := PartOne(strings.NewReader(inputTest))
 	want := rate{gamma: 0b10110, epsilon: 0b1001}
 	if got != want {
 		t.Errorf("got %s; want %s", got, want)
@@ -54,7 +54,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test))
+	got := PartTwo(strings.NewReader(inputTest))
 	want := rating{o2: 0b10111, co2: 0b01010}
 	if got != want {
 		t.Errorf("got %s; want %s", got, want)
@@ -128,7 +128,7 @@ func scan(r io.Reader) (ns []uint64, bits int) {
 	return ns, bits
 }
 
-const input_test = `00100
+const inputTest = `00100
 11110
 10110
 10111

@@ -87,7 +87,7 @@ func ExamplePartTwo() {
 }
 
 func TestPartOne(t *testing.T) {
-	got := PartOne(strings.NewReader(input_test))
+	got := PartOne(strings.NewReader(inputTest))
 	want := 26397
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
@@ -95,7 +95,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(input_test))
+	got := PartTwo(strings.NewReader(inputTest))
 	want := 288957
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
@@ -159,7 +159,7 @@ func scan(r io.Reader) (ls [][]chunk) {
 	return ls
 }
 
-const input_test = `[({(<(())[]>[[{[]{<()<>>
+const inputTest = `[({(<(())[]>[[{[]{<()<>>
 [(()[<>])]({[<{<<[]>>(
 {([(<{}[<>[]}>{[]{[(<()>
 (((({<>}<{<{<>}{[]{[]{}
