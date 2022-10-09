@@ -123,9 +123,9 @@ func sum(ns []int) (rs int) {
 
 func scan(r io.Reader) (tl []byte, rls [][3]byte) {
 	var s string
-	var bs [3]byte
 	fmt.Fscanf(r, "%s\n\n", &s)
 	for {
+		var bs [3]byte
 		if _, err := fmt.Fscanf(r, "%c%c -> %c\n", &bs[0], &bs[1], &bs[2]); err == io.EOF {
 			break
 		}
