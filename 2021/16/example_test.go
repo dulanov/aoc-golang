@@ -111,9 +111,10 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) (vs []int) {
+	var ps int
 	parse(scan(r), func(hd head) {
 		vs = append(vs, hd.version)
-	})
+	}, &ps)
 	return vs
 }
 
@@ -121,28 +122,28 @@ func PartTwo(r io.Reader) int {
 	return 0
 }
 
-func parse(bs []bool, fn func(hd head)) (ps int, rs []bool) {
-	for st := (stack[item]{{numOfPackages: 1}}); !st.empty(); {
+func parse(bs []bool, fn func(hd head), ps *int) (rs []bool) {
+	for st := (stack[item]{{*ps, 0, 1}}); !st.empty(); {
 		var it item
 		st, it, _ = st.pop()
-		if ps != it.startFrom {
-			if it.lenInBits > ps-it.startFrom {
-				st = st.push(item{ps, it.lenInBits - ps + it.startFrom, 0})
+		if *ps != it.startFrom {
+			if it.lenInBits > *ps-it.startFrom {
+				st = st.push(item{*ps, it.lenInBits - *ps + it.startFrom, 0})
 			} else if it.numOfPackages >= 2 {
-				st = st.push(item{ps, 0, it.numOfPackages - 1})
+				st = st.push(item{*ps, 0, it.numOfPackages - 1})
 			}
 			continue
 		}
 		var hd head
-		hd, bs = parseHeader(bs, &ps)
+		hd, bs = parseHeader(bs, ps)
 		if fn(hd); !hd.operator {
-			_, bs = parseLiteral(bs, &ps)
+			_, bs = parseLiteral(bs, ps)
 			st = st.push(it)
 			continue
 		}
-		st = st.push(it, item{ps, hd.lenInBits, hd.numOfPackages})
+		st = st.push(it, item{*ps, hd.lenInBits, hd.numOfPackages})
 	}
-	return ps, bs
+	return bs
 }
 
 func parseHeader(bs []bool, ps *int) (hd head, rs []bool) {
