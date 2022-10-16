@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 )
@@ -112,39 +111,38 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) (vs []int) {
-	bs, ps, st := scan(r), 0, stack[item]{{numOfPackages: 1}}
-	for !st.empty() {
+	parse(scan(r), func(hd head) {
+		vs = append(vs, hd.version)
+	})
+	return vs
+}
+
+func PartTwo(r io.Reader) int {
+	return 0
+}
+
+func parse(bs []bool, fn func(hd head)) (ps int, rs []bool) {
+	for st := (stack[item]{{numOfPackages: 1}}); !st.empty(); {
 		var it item
 		st, it, _ = st.pop()
 		if ps != it.startFrom {
-			if it.numOfPackages == 1 ||
-				it.lenInBits == ps-it.startFrom {
-				continue
+			if it.lenInBits > ps-it.startFrom {
+				st = st.push(item{ps, it.lenInBits - ps + it.startFrom, 0})
+			} else if it.numOfPackages >= 2 {
+				st = st.push(item{ps, 0, it.numOfPackages - 1})
 			}
-			if it.lenInBits != 0 {
-				it.lenInBits -= ps - it.startFrom
-			} else {
-				it.numOfPackages--
-			}
-			it.startFrom = ps
-			st = st.push(it)
 			continue
 		}
 		var hd head
 		hd, bs = parseHeader(bs, &ps)
-		vs = append(vs, hd.version)
-		if !hd.operator {
+		if fn(hd); !hd.operator {
 			_, bs = parseLiteral(bs, &ps)
 			st = st.push(it)
 			continue
 		}
 		st = st.push(it, item{ps, hd.lenInBits, hd.numOfPackages})
 	}
-	return vs
-}
-
-func PartTwo(r io.Reader) int {
-	return 0
+	return ps, bs
 }
 
 func parseHeader(bs []bool, ps *int) (hd head, rs []bool) {
@@ -190,11 +188,10 @@ func sum(ns []int) (rs int) {
 
 func scan(r io.Reader) (bs []bool) {
 	for {
-		var s string
-		if _, err := fmt.Fscanf(r, "%2s", &s); err == io.EOF {
+		var n uint8
+		if _, err := fmt.Fscanf(r, "%2X", &n); err == io.EOF {
 			break
 		}
-		n, _ := strconv.ParseUint(s, 16, 8)
 		for i := 8; i != 0; i-- {
 			bs = append(bs, (n>>(i-1))&1 == 1)
 		}
