@@ -13,9 +13,26 @@ import (
 //go:embed testdata/input
 var input string
 
+type typ int
+
 const (
-	LitValTypeId = 4
+	TypeIdOpSum typ = iota
+	TypeIdOpMul
+	TypeIdOpMin
+	TypeIdOpMax
+	TypeIdVlLit
+	TypeIdOpGt
+	TypeIdOpLt
+	TypeIdOpEq
 )
+
+var ops = []func(ns []int) int{
+	sum, mul, min, max,
+	func(ns []int) int { return ns[0] },
+	func(ns []int) int { return gt(ns[0], ns[1]) },
+	func(ns []int) int { return lt(ns[0], ns[1]) },
+	func(ns []int) int { return eq(ns[0], ns[1]) },
+}
 
 type stack[T any] []T
 
@@ -36,14 +53,8 @@ func (s stack[T]) pop() (stack[T], T, bool) {
 
 type head struct {
 	version       int
-	operator      bool
-	lenInBits     int
-	numOfPackages int
-}
-
-type item struct {
-	startFrom     int
-	lenInBits     int
+	opType        typ
+	posLimit      int
 	numOfPackages int
 }
 
@@ -56,7 +67,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 10626195124371
 }
 
 func TestPartOne(t *testing.T) {
@@ -65,35 +76,35 @@ func TestPartOne(t *testing.T) {
 		want []int
 	}{
 		{
-			in:   inputTest0,
+			in:   inputTest00,
 			want: []int{6},
 		},
 		{
-			in:   inputTest1,
+			in:   inputTest01,
 			want: []int{1, 6, 2},
 		},
 		{
-			in:   inputTest2,
+			in:   inputTest02,
 			want: []int{7, 2, 4, 1},
 		},
 		{
-			in:   inputTest3,
+			in:   inputTest03,
 			want: []int{4, 1, 5, 6},
 		},
 		{
-			in:   inputTest4,
+			in:   inputTest04,
 			want: []int{3, 0, 0, 5, 1, 0, 3},
 		},
 		{
-			in:   inputTest5,
+			in:   inputTest05,
 			want: []int{6, 0, 0, 6, 4, 7, 0},
 		},
 		{
-			in:   inputTest6,
+			in:   inputTest06,
 			want: []int{5, 1, 3, 7, 6, 5, 2, 2},
 		},
 	} {
-		t.Run(fmt.Sprintf("inputTest%d", i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("inputTest0%d", i), func(t *testing.T) {
 			got := PartOne(strings.NewReader(tc.in))
 			if !reflect.DeepEqual(got, tc.want) {
 				t.Errorf("got %v; want %v", got, tc.want)
@@ -103,63 +114,115 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(inputTest0))
-	want := 0
-	if got != want {
-		t.Errorf("got %d; want %d", got, want)
+	for i, tc := range []struct {
+		in   string
+		want int
+	}{
+		{
+			in:   inputTest10,
+			want: 3,
+		},
+		{
+			in:   inputTest11,
+			want: 54,
+		},
+		{
+			in:   inputTest12,
+			want: 7,
+		},
+		{
+			in:   inputTest13,
+			want: 9,
+		},
+		{
+			in:   inputTest14,
+			want: 1,
+		},
+		{
+			in:   inputTest15,
+			want: 0,
+		},
+		{
+			in:   inputTest16,
+			want: 0,
+		},
+		{
+			in:   inputTest17,
+			want: 1,
+		},
+	} {
+		t.Run(fmt.Sprintf("inputTest1%d", i), func(t *testing.T) {
+			got := PartTwo(strings.NewReader(tc.in))
+			if got != tc.want {
+				t.Errorf("got %d; want %d", got, tc.want)
+			}
+		})
 	}
 }
 
 func PartOne(r io.Reader) (vs []int) {
-	var ps int
-	parse(scan(r), func(hd head) {
+	eval(scan(r), func(hd head) {
 		vs = append(vs, hd.version)
-	}, &ps)
+	})
 	return vs
 }
 
-func PartTwo(r io.Reader) int {
-	return 0
+func PartTwo(r io.Reader) (n int) {
+	return eval(scan(r), func(hd head) {})
 }
 
-func parse(bs []bool, fn func(hd head), ps *int) (rs []bool) {
-	for st := (stack[item]{{*ps, 0, 1}}); !st.empty(); {
-		var it item
-		st, it, _ = st.pop()
-		if *ps != it.startFrom {
-			if it.lenInBits > *ps-it.startFrom {
-				st = st.push(item{*ps, it.lenInBits - *ps + it.startFrom, 0})
-			} else if it.numOfPackages >= 2 {
-				st = st.push(item{*ps, 0, it.numOfPackages - 1})
+func eval(bs []bool, fn func(hd head)) (n int) {
+	type op struct {
+		op     typ
+		limit  int
+		values []int
+	}
+	for pc, st := 0, (stack[op]{op{limit: 1}}); ; {
+		var o1, o2 op
+		st, o1, _ = st.pop()
+		if o1.op == TypeIdVlLit && st.empty() {
+			n = ops[o1.op](o1.values)
+			break
+		}
+		if o1.op == TypeIdVlLit {
+			st, o2, _ = st.pop()
+			o2.values = append(o2.values, o1.values...)
+			if o2.limit != pc && o2.limit != len(o2.values) {
+				st = st.push(o2)
+				continue
 			}
+			st = st.push(op{op: TypeIdVlLit,
+				values: []int{ops[o2.op](o2.values)}})
 			continue
 		}
 		var hd head
-		hd, bs = parseHeader(bs, ps)
-		if fn(hd); !hd.operator {
-			_, bs = parseLiteral(bs, ps)
-			st = st.push(it)
+		hd, bs = parseHeader(bs, &pc)
+		if fn(hd); hd.opType == TypeIdVlLit {
+			var n int
+			n, bs = parseLiteral(bs, &pc)
+			st = st.push(o1, op{op: TypeIdVlLit, values: []int{n}})
 			continue
 		}
-		st = st.push(it, item{*ps, hd.lenInBits, hd.numOfPackages})
+		st = st.push(o1, op{hd.opType, hd.posLimit | hd.numOfPackages, nil})
 	}
-	return bs
+	return n
 }
 
-func parseHeader(bs []bool, ps *int) (hd head, rs []bool) {
-	if n := btoi(bs[3:6]); n == LitValTypeId {
-		*ps += 6
-		return head{btoi(bs[:3]), false, 0, 0}, bs[6:]
+func parseHeader(bs []bool, pc *int) (hd head, rs []bool) {
+	id := typ(btoi(bs[3:6]))
+	if id == TypeIdVlLit {
+		*pc += 6
+		return head{btoi(bs[:3]), TypeIdVlLit, 0, 0}, bs[6:]
 	}
 	if !bs[6] /* total length in bits */ {
-		*ps += 22
-		return head{btoi(bs[:3]), true, btoi(bs[7:22]), 0}, bs[22:]
+		*pc += 22
+		return head{btoi(bs[:3]), id, *pc + btoi(bs[7:22]), 0}, bs[22:]
 	}
-	*ps += 18
-	return head{btoi(bs[:3]), true, 0, btoi(bs[7:18])}, bs[18:]
+	*pc += 18
+	return head{btoi(bs[:3]), id, 0, btoi(bs[7:18])}, bs[18:]
 }
 
-func parseLiteral(bs []bool, ps *int) (n int, rs []bool) {
+func parseLiteral(bs []bool, pc *int) (n int, rs []bool) {
 	var l int
 	for ; ; l += 5 {
 		n = (n << 4) | btoi(bs[l+1:l+5])
@@ -167,7 +230,7 @@ func parseLiteral(bs []bool, ps *int) (n int, rs []bool) {
 			break
 		}
 	}
-	*ps += l + 5
+	*pc += l + 5
 	return n, bs[l+5:]
 }
 
@@ -180,11 +243,60 @@ func btoi(bs []bool) (n int) {
 	return n
 }
 
-func sum(ns []int) (rs int) {
-	for _, n := range ns {
-		rs += n
+func sum(ns []int) (n int) {
+	for _, v := range ns {
+		n += v
 	}
-	return rs
+	return n
+}
+
+func mul(ns []int) (n int) {
+	n = 1
+	for _, v := range ns {
+		n *= v
+	}
+	return n
+}
+
+func min(ns []int) (n int) {
+	n = ns[0]
+	for _, v := range ns[1:] {
+		if n > v {
+			n = v
+		}
+	}
+	return n
+}
+
+func max(ns []int) (n int) {
+	n = ns[0]
+	for _, v := range ns[1:] {
+		if n < v {
+			n = v
+		}
+	}
+	return n
+}
+
+func gt(n1, n2 int) (n int) {
+	if n1 > n2 {
+		return 1
+	}
+	return 0
+}
+
+func lt(n1, n2 int) (n int) {
+	if n1 < n2 {
+		return 1
+	}
+	return 0
+}
+
+func eq(n1, n2 int) (n int) {
+	if n1 == n2 {
+		return 1
+	}
+	return 0
 }
 
 func scan(r io.Reader) (bs []bool) {
@@ -201,11 +313,20 @@ func scan(r io.Reader) (bs []bool) {
 }
 
 const (
-	inputTest0 = `D2FE28`
-	inputTest1 = `38006F45291200`
-	inputTest2 = `EE00D40C823060`
-	inputTest3 = `8A004A801A8002F478`
-	inputTest4 = `620080001611562C8802118E34`
-	inputTest5 = `C0015000016115A2E0802F182340`
-	inputTest6 = `A0016C880162017C3686B18A3D4780`
+	inputTest00 = `D2FE28`
+	inputTest01 = `38006F45291200`
+	inputTest02 = `EE00D40C823060`
+	inputTest03 = `8A004A801A8002F478`
+	inputTest04 = `620080001611562C8802118E34`
+	inputTest05 = `C0015000016115A2E0802F182340`
+	inputTest06 = `A0016C880162017C3686B18A3D4780`
+
+	inputTest10 = `C200B40A82`
+	inputTest11 = `04005AC33890`
+	inputTest12 = `880086C3E88112`
+	inputTest13 = `CE00C43D881120`
+	inputTest14 = `D8005AC2A8F0`
+	inputTest15 = `F600BC2D8F`
+	inputTest16 = `9C005AC2F8F0`
+	inputTest17 = `9C0141080250320F1802104A08`
 )
