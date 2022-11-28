@@ -93,19 +93,18 @@ func PartTwo(r io.Reader) (rs []vel) {
 
 func genX(p1, p2 int) (ss [][]int) {
 	ss = make([][]int, int(math.Sqrt(float64(p2*2))))
-	for v := 0; v <= p2; v++ {
-		for i, p := 0, v; p <= p2; i, p = i+1, p+v-i-1 {
-			if i == v {
-				if p >= p1 && p <= p2 {
-					for j := i; j < len(ss); j++ {
-						ss[j] = append(ss[j], v)
-					}
+	for vl, ps, st := p2, p2, 1; vl >= st; vl, ps = vl-1, ps-st {
+		for ps < p1 && vl >= st {
+			ps, st = ps+vl-st, st+1
+		}
+		for i, p := 0, ps; p >= p1 && p <= p2; i, p = i+1, p+vl-st-i {
+			if vl == i+st {
+				for j := i + st - 1; j < len(ss); j++ {
+					ss[j] = append(ss[j], vl)
 				}
 				break
 			}
-			if p >= p1 {
-				ss[i] = append(ss[i], v)
-			}
+			ss[i+st-1] = append(ss[i+st-1], vl)
 		}
 	}
 	return ss
@@ -113,15 +112,14 @@ func genX(p1, p2 int) (ss [][]int) {
 
 func genY(p1, p2 int) (ss [][]int) {
 	ss = make([][]int, -p2*2+1)
-	li := int(math.Sqrt(float64(-p1 * 2)))
-	for lp, v := -sumOf(li), 0; v >= p2; li, lp, v = li-1, lp-v, v-1 {
-		if lp > p1 {
-			li, lp = li+1, lp+v-li-1
+	for vl, ps, st := p2, p2, 1; vl <= 0; vl, ps = vl+1, ps+st {
+		if ps > p1 {
+			ps, st = ps+vl-st, st+1
 		}
-		for i, p := li, lp; p >= p2; i, p = i+1, p+v-i-1 {
-			ss[i] = append(ss[i], v)
-			if v <= -2 /* from the opposite side */ {
-				ss[i-v*2-1] = append(ss[i-v*2-1], -v-1)
+		for i, p := 0, ps; p >= p2; i, p = i+1, p+vl-st-i {
+			ss[i+st-1] = append(ss[i+st-1], vl)
+			if vl <= -2 /* from the opposite side */ {
+				ss[i+st-vl*2-2] = append(ss[i+st-vl*2-2], -vl-1)
 			}
 		}
 	}
