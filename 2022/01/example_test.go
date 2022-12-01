@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -23,7 +24,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 200116
 }
 
 func TestPartOne(t *testing.T) {
@@ -36,23 +37,30 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(inputTest))
-	want := 0
+	want := 45000
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
 	}
 }
 
-func PartOne(r io.Reader) (n int) {
-	for _, cs := range scan(r) {
-		if s := sum(cs); n < s {
-			n = s
-		}
-	}
-	return n
+func PartOne(r io.Reader) int {
+	ns := flt(scan(r), sum)
+	sort.Sort(sort.Reverse(sort.IntSlice(ns)))
+	return ns[0]
 }
 
 func PartTwo(r io.Reader) int {
-	return 0
+	ns := flt(scan(r), sum)
+	sort.Sort(sort.Reverse(sort.IntSlice(ns)))
+	return sum(ns[:3])
+}
+
+func flt(ls [][]int, fn func([]int) int) (ns []int) {
+	ns = make([]int, len(ls))
+	for _, l := range ls {
+		ns = append(ns, fn(l))
+	}
+	return ns
 }
 
 func sum(ns []int) (n int) {
@@ -63,7 +71,7 @@ func sum(ns []int) (n int) {
 }
 
 func scan(r io.Reader) (items [][]int) {
-	for s, i := bufio.NewScanner(r), 0; s.Scan(); {
+	for i, s := 0, bufio.NewScanner(r); s.Scan(); {
 		if len(s.Text()) == 0 {
 			i++
 			continue
