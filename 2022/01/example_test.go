@@ -72,7 +72,7 @@ func sum(ns []int) (n int) {
 
 func scan(r io.Reader) (items [][]int) {
 	for i, s := 0, bufio.NewScanner(r); s.Scan(); {
-		if len(s.Text()) == 0 {
+		if s.Text() == "" {
 			i++
 			continue
 		}
