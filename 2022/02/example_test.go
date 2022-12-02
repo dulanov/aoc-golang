@@ -22,16 +22,6 @@ const (
 	scissors
 )
 
-const (
-	lost game = iota
-	draw
-	won
-)
-
-func (s shape) defeats(s2 shape) bool {
-	return ((int(s) - int(s2) + 2) % 3) == 0
-}
-
 func (s shape) score() int {
 	return int(s) + 1
 }
@@ -46,13 +36,7 @@ func (s shape) adjust(g game) shape {
 }
 
 func (s shape) play(s2 shape) game {
-	if s == s2 {
-		return draw
-	}
-	if s.defeats(s2) {
-		return won
-	}
-	return lost
+	return game((int(s) - int(s2) + 4) % 3)
 }
 
 func (g game) score() int {
@@ -110,7 +94,7 @@ func scan(r io.Reader) (guide []struct {
 		guide = append(guide, struct {
 			s1, s2 shape
 			g      game
-		}{(shape)(fs[0][0] - 'A'), (shape)(fs[1][0] - 'X'), (game)(fs[1][0] - 'X')})
+		}{shape(fs[0][0] - 'A'), shape(fs[1][0] - 'X'), game(fs[1][0] - 'X')})
 	}
 	return guide
 }

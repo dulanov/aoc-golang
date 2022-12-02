@@ -91,7 +91,7 @@ func scan(r io.Reader) (ops []op) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		fs := strings.Fields(s.Text())
 		n, _ := strconv.Atoi(fs[1])
-		ops = append(ops, op{(dir)(fs[0]), n})
+		ops = append(ops, op{dir(fs[0]), n})
 	}
 	return ops
 }
