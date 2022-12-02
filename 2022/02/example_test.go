@@ -16,23 +16,12 @@ var input string
 type shape int
 type game int
 
-const (
-	rock shape = iota
-	paper
-	scissors
-)
-
 func (s shape) score() int {
 	return int(s) + 1
 }
 
 func (s shape) adjust(g game) shape {
-	for _, s2 := range []shape{rock, paper, scissors} {
-		if s2.play(s) == g {
-			return s2
-		}
-	}
-	return s
+	return shape((int(s) - int(g)*2 + 5) % 3)
 }
 
 func (s shape) play(s2 shape) game {
