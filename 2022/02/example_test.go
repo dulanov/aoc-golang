@@ -36,7 +36,7 @@ func (s shape) adjust(g game) shape {
 }
 
 func (s shape) play(s2 shape) game {
-	return game((int(s) - int(s2) + 4) % 3)
+	return game((int(s) - int(s2) + 1) % 3)
 }
 
 func (g game) score() int {
