@@ -47,6 +47,18 @@ func (s shape) score() int {
 	return 0
 }
 
+func (s shape) adjust(g game) shape {
+	if g == draw {
+		return s
+	}
+	for _, s2 := range []shape{rock, paper, scissors} {
+		if s != s2 && s2.play(s) == g {
+			return s2
+		}
+	}
+	return s
+}
+
 func (s shape) play(s2 shape) game {
 	if s == s2 {
 		return draw
@@ -76,7 +88,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 14184
 }
 
 func TestPartOne(t *testing.T) {
@@ -89,7 +101,7 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(inputTest))
-	want := 0
+	want := 12
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
 	}
@@ -97,19 +109,26 @@ func TestPartTwo(t *testing.T) {
 
 func PartOne(r io.Reader) (n int) {
 	for _, m := range scan(r) {
-		n += m[1].score() + m[1].play(m[0]).score()
+		n += m.s2.score() + m.s2.play(m.s1).score()
 	}
 	return n
 }
 
-func PartTwo(r io.Reader) int {
-	return 0
+func PartTwo(r io.Reader) (n int) {
+	for _, m := range scan(r) {
+		n += m.s1.adjust(m.g).score() + m.g.score()
+	}
+	return n
 }
 
-func scan(r io.Reader) (guide [][2]shape) {
+func scan(r io.Reader) (guide []struct {
+	s1, s2 shape
+	g      game
+}) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		fs := strings.Fields(s.Text())
 		var s1, s2 shape
+		var g game
 		switch fs[0] {
 		case "A":
 			s1 = rock
@@ -120,13 +139,16 @@ func scan(r io.Reader) (guide [][2]shape) {
 		}
 		switch fs[1] {
 		case "X":
-			s2 = rock
+			s2, g = rock, lost
 		case "Y":
-			s2 = paper
+			s2, g = paper, draw
 		case "Z":
-			s2 = scissors
+			s2, g = scissors, won
 		}
-		guide = append(guide, [2]shape{s1, s2})
+		guide = append(guide, struct {
+			s1, s2 shape
+			g      game
+		}{s1, s2, g})
 	}
 	return guide
 }
