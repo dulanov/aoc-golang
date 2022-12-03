@@ -79,8 +79,10 @@ func scan(r io.Reader) (rs [][]int) {
 		bs := s.Bytes()
 		ns := make([]int, len(bs))
 		for i, b := range bs {
-			if ns[i] = int(b) - 'a' + 1; ns[i] < 0 {
-				ns[i] += 'z' - 'A' + 1
+			if b >= 'a' {
+				ns[i] = int(b) - 'a' + 1
+			} else {
+				ns[i] = int(b) - 'A' + 1
 			}
 		}
 		rs = append(rs, ns)
