@@ -80,7 +80,7 @@ func scan(r io.Reader) (rs [][]int) {
 		ns := make([]int, len(bs))
 		for i, b := range bs {
 			if ns[i] = int(b) - 'a' + 1; ns[i] < 0 {
-				ns[i] += 58
+				ns[i] += 'z' - 'A' + 1
 			}
 		}
 		rs = append(rs, ns)
