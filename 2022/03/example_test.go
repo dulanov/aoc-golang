@@ -6,7 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"sort"
+	"math"
 	"strings"
 	"testing"
 )
@@ -44,10 +44,8 @@ func TestPartTwo(t *testing.T) {
 
 func PartOne(r io.Reader) (n int) {
 	for _, ns := range scan(r) {
-		ns1, ns2 := ns[:len(ns)/2], ns[len(ns)/2:]
-		sort.Ints(ns1)
-		sort.Ints(ns2)
-		n += intersect(ns1, ns2)[0]
+		n += int(math.Log2(float64(
+			and(mask(ns[:len(ns)/2]), mask(ns[len(ns)/2:])))))
 	}
 	return n
 }
@@ -55,28 +53,25 @@ func PartOne(r io.Reader) (n int) {
 func PartTwo(r io.Reader) (n int) {
 	rs := scan(r)
 	for i := 0; i < len(rs); i += 3 {
-		ns1, ns2, ns3 := rs[i], rs[i+1], rs[i+2]
-		sort.Ints(ns1)
-		sort.Ints(ns2)
-		sort.Ints(ns3)
-		n += intersect(intersect(ns1, ns2), ns3)[0]
+		n += int(math.Log2(float64(
+			and(mask(rs[i]), mask(rs[i+1]), mask(rs[i+2])))))
 	}
 	return n
 }
 
-func intersect(ns1, ns2 []int) (ns []int) {
-	for i1, i2 := 0, 0; i1 < len(ns1) && i2 < len(ns2); {
-		if ns1[i1] == ns2[i2] {
-			ns, i1, i2 = append(ns, ns1[i1]), i1+1, i2+1
-			continue
-		}
-		if ns1[i1] < ns2[i2] {
-			i1++
-		} else {
-			i2++
-		}
+func and(ms ...uint64) (m uint64) {
+	m = ms[0]
+	for _, m1 := range ms[1:] {
+		m &= m1
 	}
-	return ns
+	return m
+}
+
+func mask(ns []int) (m uint64) {
+	for _, n := range ns {
+		m |= 1 << n
+	}
+	return m
 }
 
 func scan(r io.Reader) (rs [][]int) {
