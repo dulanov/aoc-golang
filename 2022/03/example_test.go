@@ -45,7 +45,7 @@ func TestPartTwo(t *testing.T) {
 func PartOne(r io.Reader) (n int) {
 	for _, ns := range scan(r) {
 		n += int(math.Log2(float64(
-			and(mask(ns[:len(ns)/2]), mask(ns[len(ns)/2:])))))
+			mask(ns[:len(ns)/2]) & mask(ns[len(ns)/2:]))))
 	}
 	return n
 }
@@ -54,17 +54,9 @@ func PartTwo(r io.Reader) (n int) {
 	rs := scan(r)
 	for i := 0; i < len(rs); i += 3 {
 		n += int(math.Log2(float64(
-			and(mask(rs[i]), mask(rs[i+1]), mask(rs[i+2])))))
+			mask(rs[i]) & mask(rs[i+1]) & mask(rs[i+2]))))
 	}
 	return n
-}
-
-func and(ms ...uint64) (m uint64) {
-	m = ms[0]
-	for _, m1 := range ms[1:] {
-		m &= m1
-	}
-	return m
 }
 
 func mask(ns []int) (m uint64) {
