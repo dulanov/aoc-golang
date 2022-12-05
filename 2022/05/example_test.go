@@ -30,12 +30,6 @@ func (s stack[T]) pop() (stack[T], T, bool) {
 	return s[:len(s)-1], s[len(s)-1], true
 }
 
-func (s stack[T]) reverse() {
-	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
-		s[i], s[j] = s[j], s[i]
-	}
-}
-
 type op struct {
 	nm, fr, to int
 }
@@ -103,11 +97,17 @@ func str(ss []stack[byte]) string {
 	return b.String()
 }
 
+func rev[T any](vs []T) {
+	for i, j := 0, len(vs)-1; i < j; i, j = i+1, j-1 {
+		vs[i], vs[j] = vs[j], vs[i]
+	}
+}
+
 func scan(r io.Reader) (ss []stack[byte], ops []op) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		if strings.HasPrefix(s.Text(), " 1") {
 			for _, st := range ss {
-				st.reverse()
+				rev(st)
 			}
 			s.Scan() /* skip empty line */
 			continue
