@@ -125,7 +125,7 @@ func fold(ns []int, cs []byte) (n int) {
 	for _, c := range cs[1:] {
 		n *= ns[c]
 	}
-	return
+	return n
 }
 
 func scan(r io.Reader) (cs []byte) {
