@@ -123,7 +123,7 @@ func look(cs []byte, n int) int {
 func fold(ns []int, cs []byte) (n int) {
 	n = ns[cs[0]]
 	for _, c := range cs[1:] {
-		n *= ns[c]
+		n &= ns[c]
 	}
 	return n
 }
