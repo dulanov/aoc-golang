@@ -70,9 +70,9 @@ func PartOne(r io.Reader) (n int) {
 
 func PartTwo(r io.Reader) (n int) {
 	ss := scan(r)
-	lm := ss[len(ss)-1] - 40_000_000
+	l := ss[len(ss)-1] - 40_000_000
 	for _, size := range ss {
-		if size >= lm && (n == 0 || n > size) {
+		if size >= l && (n == 0 || n > size) {
 			n = size
 		}
 	}
