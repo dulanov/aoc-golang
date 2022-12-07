@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -97,16 +98,12 @@ func scan(r io.Reader) (ss []int) {
 			continue
 		}
 		st, n1, _ = st.pop()
-		fmt.Sscanf(s.Text(), "%d", &n2)
+		n2, _ = strconv.Atoi(strings.Fields(s.Text())[0])
 		st = st.push(n1 + n2)
 	}
-	for !st.empty() {
-		st, n1, _ = st.pop()
-		if !st.empty() {
-			st, n2, _ = st.pop()
-			st = st.push(n1 + n2)
-		}
-		ss = append(ss, n1)
+	for n1 = 0; !st.empty(); n1 += n2 {
+		st, n2, _ = st.pop()
+		ss = append(ss, n1+n2)
 	}
 	return ss
 }
