@@ -13,14 +13,21 @@ import (
 //go:embed testdata/input
 var input string
 
-type dir struct {
-	size    int
-	entries []entry
+type stack[T any] []T
+
+func (s stack[T]) empty() bool {
+	return len(s) == 0
 }
 
-type entry struct {
-	name string
-	size int
+func (s stack[T]) push(v ...T) stack[T] {
+	return append(s, v...)
+}
+
+func (s stack[T]) pop() (stack[T], T, bool) {
+	if len(s) == 0 {
+		return s, *new(T), false
+	}
+	return s[:len(s)-1], s[len(s)-1], true
 }
 
 func ExamplePartOne() {
@@ -52,71 +59,56 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) (n int) {
-	ds := scan(r)
-	calcSize(ds, []string{"/"})
-	for _, d := range ds {
-		if d.size <= 100000 {
-			n += d.size
+	for _, size := range scan(r) {
+		if size <= 100000 {
+			n += size
 		}
 	}
 	return n
 }
 
 func PartTwo(r io.Reader) (n int) {
-	ds := scan(r)
-	lm := calcSize(ds, []string{"/"}) - 40_000_000
-	for _, d := range ds {
-		if d.size >= lm && (n == 0 || n > d.size) {
-			n = d.size
+	ss := scan(r)
+	lm := ss[len(ss)-1] - 40_000_000
+	for _, size := range ss {
+		if size >= lm && (n == 0 || n > size) {
+			n = size
 		}
 	}
 	return n
 }
 
-func calcSize(ds map[string]dir, path []string) (n int) {
-	str := strings.Join(path, "")
-	if ds[str].size != 0 {
-		return ds[str].size
-	}
-	for _, e := range ds[str].entries {
-		if e.size != 0 {
-			n += e.size
-		} else {
-			n += calcSize(ds, append(path, e.name))
-		}
-	}
-	ds[str] = dir{size: n, entries: ds[str].entries}
-	return n
-}
-
-func scan(r io.Reader) (ds map[string]dir) {
-	var path []string
-	ds = make(map[string]dir)
+func scan(r io.Reader) (ss []int) {
+	st, n1, n2 := stack[int]{}, 0, 0
 	for s := bufio.NewScanner(r); s.Scan(); {
-		if s.Text() == "$ ls" {
+		if s.Text() == "$ ls" ||
+			strings.HasPrefix(s.Text(), "dir ") {
 			continue // ignore
 		}
 		if s.Text() == "$ cd .." {
-			path = path[:len(path)-1]
+			st, n1, _ = st.pop()
+			st, n2, _ = st.pop()
+			st = st.push(n1 + n2)
+			ss = append(ss, n1)
 			continue
 		}
 		if strings.HasPrefix(s.Text(), "$ cd ") {
-			var str string
-			fmt.Sscanf(s.Text(), "$ cd %s", &str)
-			path = append(path, str)
-			ds[strings.Join(path, "")] = dir{}
+			st = st.push(0)
 			continue
 		}
-		entry := entry{}
-		if strings.HasPrefix(s.Text(), "dir ") {
-			fmt.Sscanf(s.Text(), "dir %s", &entry.name)
-		} else {
-			fmt.Sscanf(s.Text(), "%d %s", &entry.size, &entry.name)
-		}
-		str := strings.Join(path, "")
-		ds[str] = dir{entries: append(ds[str].entries, entry)}
+		st, n1, _ = st.pop()
+		fmt.Sscanf(s.Text(), "%d", &n2)
+		st = st.push(n1 + n2)
 	}
-	return ds
+	for !st.empty() {
+		st, n1, _ = st.pop()
+		if !st.empty() {
+			st, n2, _ = st.pop()
+			st = st.push(n1 + n2)
+		}
+		ss = append(ss, n1)
+	}
+	return ss
 }
 
 const inputTest = `$ cd /
