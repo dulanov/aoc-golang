@@ -133,13 +133,6 @@ func next(ph, pt pos) pos {
 	return pt
 }
 
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
-
 func scan(r io.Reader) (ops []op) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		var op op
