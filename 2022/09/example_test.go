@@ -24,8 +24,8 @@ const (
 )
 
 type op struct {
-	dir   dir
-	steps int
+	dir dir
+	num int
 }
 
 type pos struct {
@@ -91,7 +91,7 @@ func PartTwo(r io.Reader) int {
 func sim(ops []op, n int) int {
 	ps, vs := make([]pos, n+1), []pos{{}}
 	for _, op := range ops {
-		for i := 0; i < op.steps; i++ {
+		for i := 0; i < op.num; i++ {
 			ps[0] = move(ps[0], op.dir)
 			for j, p := range ps[1:] {
 				if abs(p.x-ps[j].x) > 1 ||
@@ -156,7 +156,7 @@ func unq[T comparable](vs []T) (rs []T) {
 func scan(r io.Reader) (ops []op) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		var op op
-		fmt.Sscanf(s.Text(), "%c %d", &op.dir, &op.steps)
+		fmt.Sscanf(s.Text(), "%c %d", &op.dir, &op.num)
 		ops = append(ops, op)
 	}
 	return ops
