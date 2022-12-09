@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -29,6 +30,11 @@ type op struct {
 
 type pos struct {
 	x, y int
+}
+
+func (p pos) cmp(p2 pos) bool {
+	return (p.x != p2.x && p.x < p2.x) ||
+		(p.x == p2.x && p.y < p2.y)
 }
 
 func ExamplePartOne() {
@@ -83,18 +89,25 @@ func PartTwo(r io.Reader) int {
 }
 
 func sim(ops []op, n int) int {
-	ps := make([]pos, n+1)
-	vs := map[pos]bool{{}: true}
+	ps, vs := make([]pos, n+1), []pos{{}}
 	for _, op := range ops {
 		for i := 0; i < op.steps; i++ {
 			ps[0] = move(ps[0], op.dir)
 			for j, p := range ps[1:] {
-				ps[j+1] = next(ps[j], p)
+				if abs(p.x-ps[j].x) > 1 ||
+					abs(p.y-ps[j].y) > 1 {
+					ps[j+1] = pos{
+						p.x + sgn(ps[j].x-p.x),
+						p.y + sgn(ps[j].y-p.y)}
+				}
 			}
-			vs[ps[len(ps)-1]] = true
+			vs = append(vs, ps[len(ps)-1])
 		}
 	}
-	return len(vs)
+	sort.Slice(vs, func(i, j int) bool {
+		return vs[i].cmp(vs[j])
+	})
+	return len(unq(vs))
 }
 
 func move(p pos, dir dir) pos {
@@ -111,26 +124,31 @@ func move(p pos, dir dir) pos {
 	return p
 }
 
-func next(ph, pt pos) pos {
-	switch (pos{ph.x - pt.x, ph.y - pt.y}) {
-	case pos{-2, 1}, pos{-2, 2}, pos{-1, 2}:
-		return pos{pt.x - 1, pt.y + 1}
-	case pos{0, 2}:
-		return pos{pt.x, pt.y + 1}
-	case pos{1, 2}, pos{2, 2}, pos{2, 1}:
-		return pos{pt.x + 1, pt.y + 1}
-	case pos{2, 0}:
-		return pos{pt.x + 1, pt.y}
-	case pos{2, -1}, pos{2, -2}, pos{1, -2}:
-		return pos{pt.x + 1, pt.y - 1}
-	case pos{0, -2}:
-		return pos{pt.x, pt.y - 1}
-	case pos{-1, -2}, pos{-2, -2}, pos{-2, -1}:
-		return pos{pt.x - 1, pt.y - 1}
-	case pos{-2, 0}:
-		return pos{pt.x - 1, pt.y}
+func abs(n int) int {
+	if n < 0 {
+		return -n
 	}
-	return pt
+	return n
+}
+
+func sgn(n int) int {
+	if n < 0 {
+		return -1
+	}
+	if n > 0 {
+		return 1
+	}
+	return 0
+}
+
+func unq[T comparable](vs []T) (rs []T) {
+	pr := 0
+	for i := 1; i < len(vs); i++ {
+		if vs[i] != vs[i-1] {
+			vs[pr+1], pr = vs[i], pr+1
+		}
+	}
+	return vs[:pr+1]
 }
 
 func scan(r io.Reader) (ops []op) {
