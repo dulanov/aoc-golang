@@ -101,7 +101,9 @@ func sim(ops []op, n int) int {
 						p.y + sgn(ps[j].y-p.y)}
 				}
 			}
-			vs = append(vs, ps[len(ps)-1])
+			if vs[len(vs)-1] != ps[len(ps)-1] {
+				vs = append(vs, ps[len(ps)-1])
+			}
 		}
 	}
 	sort.Slice(vs, func(i, j int) bool {
