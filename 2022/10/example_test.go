@@ -74,32 +74,45 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) (n int) {
-	lm, pc, rx := 20, 1, 1
-	for _, ir := range scan(r) {
-		pc2, rx2 := ir.execute(pc, rx)
-		if pc <= lm && pc2 > lm {
+	lm := 20
+	exec(scan(r), func(pc, pn, rx int) {
+		if pc <= lm && pc+pn > lm {
 			n, lm = n+lm*rx, lm+40
 		}
-		pc, rx = pc2, rx2
-	}
+	})
 	return n
 }
 
 func PartTwo(r io.Reader) string {
-	bh, bw, pc, rx := 6, 40, 1, 1
+	bh, bw := 6, 40
 	bs := append([]byte{}, strings.Repeat(".", bh*bw)...)
-	for _, ir := range scan(r) {
-		pc2, rx2 := ir.execute(pc, rx)
-		for i := 0; i < pc2-pc; i++ {
-			if n := (pc + i - 1) % bw; n >= rx-1 && n <= rx+1 {
+	exec(scan(r), func(pc, pn, rx int) {
+		for i := 0; i < pn; i++ {
+			if abs((pc+i-1)%bw-rx) <= 1 {
+				/* sprite collision: 3 pixels */
 				bs[pc+i-1] = '#'
 			}
 		}
-		pc, rx = pc2, rx2
-	}
+	})
 	return strings.Join(splitBy(bs, bw, func(bs []byte) string {
 		return string(bs)
 	}), "\n")
+}
+
+func exec(vs []ir, fn func(int, int, int)) {
+	pc, rx := 1, 1
+	for _, ir := range vs {
+		pc2, rx2 := ir.execute(pc, rx)
+		fn(pc, pc2-pc, rx)
+		pc, rx = pc2, rx2
+	}
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
 }
 
 func splitBy[T1, T2 any](vs []T1, n int, fn func([]T1) T2) (rs []T2) {
@@ -109,13 +122,13 @@ func splitBy[T1, T2 any](vs []T1, n int, fn func([]T1) T2) (rs []T2) {
 	return append(rs, fn(vs))
 }
 
-func scan(r io.Reader) (irs []ir) {
+func scan(r io.Reader) (rs []ir) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		var ir ir
 		fmt.Sscanf(s.Text(), "%s %d", &ir.inr, &ir.arg)
-		irs = append(irs, ir)
+		rs = append(rs, ir)
 	}
-	return irs
+	return rs
 }
 
 const inputTest = `addx 15
