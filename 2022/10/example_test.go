@@ -44,7 +44,12 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// ####.###..#..#.###..#..#.####..##..#..#.
+	// #....#..#.#..#.#..#.#..#....#.#..#.#..#.
+	// ###..###..#..#.#..#.####...#..#....####.
+	// #....#..#.#..#.###..#..#..#...#....#..#.
+	// #....#..#.#..#.#.#..#..#.#....#..#.#..#.
+	// #....###...##..#..#.#..#.####..##..#..#.
 }
 
 func TestPartOne(t *testing.T) {
@@ -57,16 +62,21 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(inputTest))
-	want := 0
+	want := `##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....`
 	if got != want {
-		t.Errorf("got %d; want %d", got, want)
+		t.Errorf("got %s; want %s", got, want)
 	}
 }
 
 func PartOne(r io.Reader) (n int) {
 	lm, pc, rx := 20, 1, 1
-	for _, op := range scan(r) {
-		pc2, rx2 := op.execute(pc, rx)
+	for _, ir := range scan(r) {
+		pc2, rx2 := ir.execute(pc, rx)
 		if pc <= lm && pc2 > lm {
 			n, lm = n+lm*rx, lm+40
 		}
@@ -75,17 +85,37 @@ func PartOne(r io.Reader) (n int) {
 	return n
 }
 
-func PartTwo(r io.Reader) int {
-	return 0
+func PartTwo(r io.Reader) string {
+	bh, bw, pc, rx := 6, 40, 1, 1
+	bs := append([]byte{}, strings.Repeat(".", bh*bw)...)
+	for _, ir := range scan(r) {
+		pc2, rx2 := ir.execute(pc, rx)
+		for i := 0; i < pc2-pc; i++ {
+			if n := (pc + i - 1) % bw; n >= rx-1 && n <= rx+1 {
+				bs[pc+i-1] = '#'
+			}
+		}
+		pc, rx = pc2, rx2
+	}
+	return strings.Join(splitBy(bs, bw, func(bs []byte) string {
+		return string(bs)
+	}), "\n")
 }
 
-func scan(r io.Reader) (ops []ir) {
-	for s := bufio.NewScanner(r); s.Scan(); {
-		var op ir
-		fmt.Sscanf(s.Text(), "%s %d", &op.inr, &op.arg)
-		ops = append(ops, op)
+func splitBy[T1, T2 any](vs []T1, n int, fn func([]T1) T2) (rs []T2) {
+	for n < len(vs) {
+		vs, rs = vs[n:], append(rs, fn(vs[0:n:n]))
 	}
-	return ops
+	return append(rs, fn(vs))
+}
+
+func scan(r io.Reader) (irs []ir) {
+	for s := bufio.NewScanner(r); s.Scan(); {
+		var ir ir
+		fmt.Sscanf(s.Text(), "%s %d", &ir.inr, &ir.arg)
+		irs = append(irs, ir)
+	}
+	return irs
 }
 
 const inputTest = `addx 15
