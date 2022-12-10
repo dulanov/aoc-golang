@@ -25,7 +25,7 @@ type ir struct {
 	arg int
 }
 
-func (o ir) execute(pc, rx int) (int, int) {
+func (o ir) exec(pc, rx int) (int, int) {
 	switch o.inr {
 	case nop:
 		return pc + 1, rx
@@ -102,7 +102,7 @@ func PartTwo(r io.Reader) string {
 func exec(vs []ir, fn func(int, int, int)) {
 	pc, rx := 1, 1
 	for _, ir := range vs {
-		pc2, rx2 := ir.execute(pc, rx)
+		pc2, rx2 := ir.exec(pc, rx)
 		fn(pc, pc2-pc, rx)
 		pc, rx = pc2, rx2
 	}
