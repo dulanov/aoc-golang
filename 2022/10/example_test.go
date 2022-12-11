@@ -75,8 +75,8 @@ func TestPartTwo(t *testing.T) {
 
 func PartOne(r io.Reader) (n int) {
 	lm := 20
-	exec(scan(r), func(pc, pn, rx int) {
-		if pc <= lm && pc+pn > lm {
+	exec(scan(r), func(pc, rx int) {
+		if pc == lm {
 			n, lm = n+lm*rx, lm+40
 		}
 	})
@@ -86,12 +86,10 @@ func PartOne(r io.Reader) (n int) {
 func PartTwo(r io.Reader) string {
 	bh, bw := 6, 40
 	bs := append([]byte{}, strings.Repeat(".", bh*bw)...)
-	exec(scan(r), func(pc, pn, rx int) {
-		for i := 0; i < pn; i++ {
-			if abs((pc+i-1)%bw-rx) <= 1 {
-				/* sprite collision: 3 pixels */
-				bs[pc+i-1] = '#'
-			}
+	exec(scan(r), func(pc, rx int) {
+		if abs((pc-1)%bw-rx) <= 1 {
+			/* sprite collision: 3 pixels */
+			bs[pc-1] = '#'
 		}
 	})
 	return strings.Join(splitBy(bs, bw, func(bs []byte) string {
@@ -99,11 +97,13 @@ func PartTwo(r io.Reader) string {
 	}), "\n")
 }
 
-func exec(vs []ir, fn func(int, int, int)) {
+func exec(vs []ir, fn func(int, int)) {
 	pc, rx := 1, 1
 	for _, ir := range vs {
 		pc2, rx2 := ir.exec(pc, rx)
-		fn(pc, pc2-pc, rx)
+		for i := 0; i < pc2-pc; i++ {
+			fn(pc+i, rx)
+		}
 		pc, rx = pc2, rx2
 	}
 }
