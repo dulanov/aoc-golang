@@ -84,15 +84,13 @@ func PartOne(r io.Reader) (n int) {
 }
 
 func PartTwo(r io.Reader) string {
-	bh, bw := 6, 40
-	bs := append([]byte{}, strings.Repeat(".", bh*bw)...)
+	bs := append([]byte{}, strings.Repeat(".", 240)...)
 	exec(scan(r), func(pc, rx int) {
-		if abs((pc-1)%bw-rx) <= 1 {
-			/* sprite collision: 3 pixels */
+		if abs((pc-1)%40-rx) <= 1 /* sprite collision */ {
 			bs[pc-1] = '#'
 		}
 	})
-	return strings.Join(splitBy(bs, bw, func(bs []byte) string {
+	return strings.Join(splitBy(bs, 40, func(bs []byte) string {
 		return string(bs)
 	}), "\n")
 }
