@@ -32,9 +32,11 @@ func ExamplePartOne() {
 }
 
 func ExamplePartTwo() {
-	fmt.Println(PartTwo(strings.NewReader(input)))
+	ns := PartTwo(strings.NewReader(input))
+	sort.Sort(sort.Reverse(sort.IntSlice(ns)))
+	fmt.Println(mul(ns[:2]))
 	// Output:
-	// 0
+	// 25272176808
 }
 
 func TestPartOne(t *testing.T) {
@@ -47,29 +49,38 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(inputTest))
-	want := 0
-	if got != want {
-		t.Errorf("got %d; want %d", got, want)
+	want := []int{52166, 47830, 1938, 52013}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v; want %v", got, want)
 	}
 }
 
 func PartOne(r io.Reader) (ns []int) {
-	ms := scan(r)
+	ms, _ := scan(r)
+	return sim(ms, 20, func(n int) int {
+		return int(math.Round(float64(n / 3)))
+	})
+}
+
+func PartTwo(r io.Reader) (ns []int) {
+	ms, lcm := scan(r)
+	return sim(ms, 10000, func(n int) int {
+		return n % lcm
+	})
+}
+
+func sim(ms []monkey, nm int, fn func(int) int) (ns []int) {
 	ns = make([]int, len(ms))
-	for i := 0; i < 20; i++ {
+	for i := 0; i < nm; i++ {
 		for j, m := range ms {
 			for _, v := range m.items {
-				n := int(math.Round(float64(m.calc(v) / 3)))
+				n := fn(m.calc(v))
 				ms[m.next(n)].items = append(ms[m.next(n)].items, n)
 			}
 			ns[j], ms[j].items = ns[j]+len(m.items), []int{}
 		}
 	}
 	return ns
-}
-
-func PartTwo(r io.Reader) int {
-	return 0
 }
 
 func mul(ns []int) (n int) {
@@ -80,8 +91,9 @@ func mul(ns []int) (n int) {
 	return n
 }
 
-func scan(r io.Reader) (ms []monkey) {
+func scan(r io.Reader) (ms []monkey, lcm int) {
 	var m monkey
+	lcm = 1
 	for s := bufio.NewScanner(r); s.Scan(); {
 		switch {
 		case strings.HasPrefix(s.Text(), "M"):
@@ -103,23 +115,22 @@ func scan(r io.Reader) (ms []monkey) {
 				m.calc = func(n int) int { return n * n1 }
 			}
 		case strings.HasPrefix(s.Text(), "  T"):
-			var n1, n2, n3 int
-			fmt.Sscanf(s.Text(), "  Test: divisible by %d", &n1)
+			n1, _ := strconv.Atoi(s.Text()[21:])
 			s.Scan()
-			fmt.Sscanf(s.Text(), "    If true: throw to monkey %d", &n2)
+			n2, _ := strconv.Atoi(s.Text()[29:])
 			s.Scan()
-			fmt.Sscanf(s.Text(), "    If false: throw to monkey %d", &n3)
-			m.next = func(n int) int {
+			n3, _ := strconv.Atoi(s.Text()[30:])
+			m.next, lcm = func(n int) int {
 				if n%n1 == 0 {
 					return n2
 				}
 				return n3
-			}
+			}, lcm*n1
 		case s.Text() == "":
 			ms = append(ms, m)
 		}
 	}
-	return append(ms, m)
+	return append(ms, m), lcm
 }
 
 const inputTest = `Monkey 0:
