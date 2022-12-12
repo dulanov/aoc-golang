@@ -24,7 +24,7 @@ func (s stack[T]) push(v ...T) stack[T] {
 }
 
 func (s stack[T]) pop() (stack[T], T, bool) {
-	if len(s) == 0 {
+	if s.empty() {
 		return s, *new(T), false
 	}
 	return s[:len(s)-1], s[len(s)-1], true
@@ -113,7 +113,7 @@ func scan(r io.Reader) (ls [][]uint8) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		ns := make([]uint8, len(s.Text()))
 		for i, r := range s.Text() {
-			ns[i] = (uint8)(r - '0')
+			ns[i] = uint8(r - '0')
 		}
 		ls = append(ls, ns)
 	}

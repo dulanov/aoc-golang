@@ -28,13 +28,11 @@ type op struct {
 	num int
 }
 
-type pos struct {
-	x, y int
-}
+type pos [2]int
 
-func (p pos) cmp(p2 pos) bool {
-	return (p.x != p2.x && p.x < p2.x) ||
-		(p.x == p2.x && p.y < p2.y)
+func (p pos) less(o pos) bool {
+	return (p[0] != o[0] && p[0] < o[0]) ||
+		(p[0] == o[0] && p[1] < o[1])
 }
 
 func ExamplePartOne() {
@@ -94,11 +92,11 @@ func sim(ops []op, n int) int {
 		for i := 0; i < op.num; i++ {
 			ps[0] = move(ps[0], op.dir)
 			for j, p := range ps[1:] {
-				if abs(p.x-ps[j].x) > 1 ||
-					abs(p.y-ps[j].y) > 1 {
+				if abs(p[0]-ps[j][0]) > 1 ||
+					abs(p[1]-ps[j][1]) > 1 {
 					ps[j+1] = pos{
-						p.x + sgn(ps[j].x-p.x),
-						p.y + sgn(ps[j].y-p.y)}
+						p[0] + sgn(ps[j][0]-p[0]),
+						p[1] + sgn(ps[j][1]-p[1])}
 				}
 			}
 			if vs[len(vs)-1] != ps[len(ps)-1] {
@@ -107,7 +105,7 @@ func sim(ops []op, n int) int {
 		}
 	}
 	sort.Slice(vs, func(i, j int) bool {
-		return vs[i].cmp(vs[j])
+		return vs[i].less(vs[j])
 	})
 	return len(unq(vs))
 }
@@ -115,13 +113,13 @@ func sim(ops []op, n int) int {
 func move(p pos, dir dir) pos {
 	switch dir {
 	case dirUp:
-		p.y += 1
+		p[1] += 1
 	case dirDown:
-		p.y -= 1
+		p[1] -= 1
 	case dirLeft:
-		p.x -= 1
+		p[0] -= 1
 	case dirRight:
-		p.x += 1
+		p[0] += 1
 	}
 	return p
 }

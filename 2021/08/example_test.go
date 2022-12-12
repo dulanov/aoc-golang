@@ -74,12 +74,12 @@ func demap(ps []string) (m [3]byte) {
 		switch c {
 		case 8 /* 'a|c' */ :
 			if m[0] == 0 {
-				m[0] = (byte)('a' + i)
+				m[0] = byte('a' + i)
 			} else {
-				m[1] = (byte)('a' + i)
+				m[1] = byte('a' + i)
 			}
 		case 4 /* 'e' */ :
-			m[2] = (byte)('a' + i)
+			m[2] = byte('a' + i)
 		}
 	}
 	return m

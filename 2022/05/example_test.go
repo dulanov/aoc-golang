@@ -24,7 +24,7 @@ func (s stack[T]) push(v ...T) stack[T] {
 }
 
 func (s stack[T]) pop() (stack[T], T, bool) {
-	if len(s) == 0 {
+	if s.empty() {
 		return s, *new(T), false
 	}
 	return s[:len(s)-1], s[len(s)-1], true

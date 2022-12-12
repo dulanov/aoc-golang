@@ -116,7 +116,7 @@ func parse(b strings.Builder) monkey {
 		n, _ := strconv.Atoi(s)
 		m.items = append(m.items, n)
 	}
-	if strings.HasSuffix(od, "old") {
+	if od == "old" {
 		m.calc = func(n int) int { return n * n }
 	} else {
 		n1, _ := strconv.Atoi(od)

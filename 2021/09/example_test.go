@@ -49,7 +49,7 @@ func TestPartTwo(t *testing.T) {
 func PartOne(r io.Reader) (n int) {
 	hs := scan(r)
 	for _, p := range lowest(hs) {
-		n += (int)(hs[p.col][p.row] + 1)
+		n += int(hs[p.col][p.row] + 1)
 	}
 	return n
 }
@@ -126,7 +126,7 @@ func scan(r io.Reader) (hs [][]uint8) {
 		}
 		ns := append(ns[:0:0], ns...)
 		for i, r := range s.Text() {
-			ns[i+1] = (uint8)(r - '0')
+			ns[i+1] = uint8(r - '0')
 		}
 		hs = append(hs, ns)
 	}
