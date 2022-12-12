@@ -78,7 +78,7 @@ func PartTwo(r io.Reader) int {
 	return bfs(to, func(p int) (rs []int) {
 		for _, d := range []int{-1, 1, -w, w} {
 			if pn := p + d; pn >= 0 && pn < len(hs) &&
-				hs[pn] > 0 && abs(hs[p])-1 <= hs[pn] {
+				abs(hs[p])-1 <= hs[pn] {
 				rs, hs[pn] = append(rs, pn), -hs[pn]
 			}
 		}
