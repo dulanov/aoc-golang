@@ -60,31 +60,29 @@ func TestPartTwo(t *testing.T) {
 
 func PartOne(r io.Reader) int {
 	hs, w, fr, to := scan(r)
-	return bfs(fr, func(p int) (rs []int) {
+	return bfs(to, func(i int) (rs []int) {
 		for _, d := range []int{-1, 1, -w, w} {
-			if pn := p + d; pn >= 0 && pn < len(hs) &&
-				hs[pn] > 0 && abs(hs[p]) >= hs[pn]-1 {
-				rs, hs[pn] = append(rs, pn), -hs[pn]
+			if j := i + d; j >= 0 && j < len(hs) && abs(hs[i])-1 <= hs[j] {
+				rs, hs[j] = append(rs, j), -hs[j]
 			}
 		}
 		return rs
-	}, func(p int) bool {
-		return p == to
+	}, func(i int) bool {
+		return i == fr
 	})
 }
 
 func PartTwo(r io.Reader) int {
 	hs, w, _, to := scan(r)
-	return bfs(to, func(p int) (rs []int) {
+	return bfs(to, func(i int) (rs []int) {
 		for _, d := range []int{-1, 1, -w, w} {
-			if pn := p + d; pn >= 0 && pn < len(hs) &&
-				abs(hs[p])-1 <= hs[pn] {
-				rs, hs[pn] = append(rs, pn), -hs[pn]
+			if j := i + d; j >= 0 && j < len(hs) && abs(hs[i])-1 <= hs[j] {
+				rs, hs[j] = append(rs, j), -hs[j]
 			}
 		}
 		return rs
-	}, func(p int) bool {
-		return abs(hs[p]) == 1
+	}, func(i int) bool {
+		return abs(hs[i]) == 1
 	})
 }
 
