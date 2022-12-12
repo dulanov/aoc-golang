@@ -60,12 +60,11 @@ func TestPartTwo(t *testing.T) {
 
 func PartOne(r io.Reader) int {
 	hs, w, fr, to := scan(r)
-	vs := make([]bool, len(hs))
 	return bfs(fr, func(p int) (rs []int) {
 		for _, d := range []int{-1, 1, -w, w} {
 			if pn := p + d; pn >= 0 && pn < len(hs) &&
-				int(hs[p]) >= int(hs[pn])-1 && !vs[pn] {
-				rs, vs[pn] = append(rs, pn), true
+				hs[pn] > 0 && abs(hs[p]) >= hs[pn]-1 {
+				rs, hs[pn] = append(rs, pn), -hs[pn]
 			}
 		}
 		return rs
@@ -76,17 +75,16 @@ func PartOne(r io.Reader) int {
 
 func PartTwo(r io.Reader) int {
 	hs, w, _, to := scan(r)
-	vs := make([]bool, len(hs))
 	return bfs(to, func(p int) (rs []int) {
 		for _, d := range []int{-1, 1, -w, w} {
 			if pn := p + d; pn >= 0 && pn < len(hs) &&
-				int(hs[pn]) >= int(hs[p])-1 && !vs[pn] {
-				rs, vs[pn] = append(rs, pn), true
+				hs[pn] > 0 && abs(hs[p])-1 <= hs[pn] {
+				rs, hs[pn] = append(rs, pn), -hs[pn]
 			}
 		}
 		return rs
 	}, func(p int) bool {
-		return hs[p] == 0
+		return abs(hs[p]) == 1
 	})
 }
 
@@ -106,19 +104,26 @@ func bfs(fr int, ps func(p int) []int, ck func(p int) bool) (n int) {
 	return -1
 }
 
-func scan(r io.Reader) (hs []uint8, w, fr, to int) {
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+func scan(r io.Reader) (hs []int, w, fr, to int) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		if w == 0 {
 			w = len(s.Text())
 		}
-		ns := make([]uint8, len(s.Text()))
+		ns := make([]int, len(s.Text()))
 		for i, r := range s.Text() {
 			if r == 'S' {
 				r, fr = 'a', len(hs)+i
 			} else if r == 'E' {
 				r, to = 'z', len(hs)+i
 			}
-			ns[i] = uint8(r - 'a')
+			ns[i] = int(r - 'a' + 1)
 		}
 		hs = append(hs, ns...)
 	}
