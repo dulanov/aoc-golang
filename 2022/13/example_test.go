@@ -64,7 +64,7 @@ func ExamplePartTwo() {
 	ns := PartTwo(strings.NewReader(input))
 	fmt.Println(ns[0] * ns[1])
 	// Output:
-	// 0
+	// 20304
 }
 
 func TestPartOne(t *testing.T) {
