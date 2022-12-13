@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"reflect"
-	"sort"
 	"strings"
 	"testing"
 )
@@ -93,18 +92,23 @@ func PartOne(r io.Reader) (ns []int) {
 }
 
 func PartTwo(r io.Reader) (ns []int) {
-	ps := scan(r)
-	sort.Slice(ps, func(i, j int) bool {
-		return ps[i].less(ps[j])
-	})
-	for i, p := range []packet{
-		newPacket(newPacket(newPacketTerm(2))),
-		newPacket(newPacket(newPacketTerm(6)))} {
-		ns = append(ns, sort.Search(len(ps), func(i int) bool {
-			return p.less(ps[i])
-		})+i+1)
+	ns = []int{1, 2}
+	for _, p := range scan(r) {
+		if n := fst(p); n < 6 {
+			if n < 2 {
+				ns[0]++
+			}
+			ns[1]++
+		}
 	}
 	return ns
+}
+
+func fst(p packet) int {
+	if len(p.ls) != 0 {
+		return fst(p.ls[0])
+	}
+	return p.n
 }
 
 func sum(ns []int) (n int) {
