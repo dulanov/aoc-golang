@@ -82,7 +82,7 @@ func PartTwo(r io.Reader) int {
 		}
 		return rs
 	}, func(i int) bool {
-		return abs(hs[i]) == 1
+		return hs[i] == -1
 	})
 }
 

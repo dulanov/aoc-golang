@@ -105,7 +105,7 @@ func parse(b strings.Builder) monkey {
 	var op byte
 	var its, od string
 	var i, tc, tn1, tn2 int
-	fmt.Sscanf(strings.NewReplacer(", ", ",").Replace(b.String()), `Monkey %d:
+	fmt.Sscanf(strings.ReplaceAll(b.String(), ", ", ","), `Monkey %d:
   Starting items: %s
   Operation: new = old %c %s
   Test: divisible by %d
