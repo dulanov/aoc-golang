@@ -84,15 +84,15 @@ func sim(ps []pos, lm int, floor bool) (n int) {
 		var p pos
 		st, p, _ = st.pop()
 	unit:
-		for {
+		for !floor || p[1] < lm-1 {
+			if !floor && p[1] == lm {
+				return n /* abyss below */
+			}
 			for _, d := range [][2]int{{0, 1}, {-1, 1}, {1, 1}, {0, 0}} {
-				if !floor && p[1]+d[1] == lm /* abyss below */ {
-					return n
-				}
-				if d[0] == 0 && d[1] == 0 /* next unit marker */ {
+				if d[0] == 0 && d[1] == 0 {
 					break unit
 				}
-				if p2 := (pos{p[0] + d[0], p[1] + d[1]}); !vs[p2] && (!floor || p2[1] != lm) {
+				if p2 := (pos{p[0] + d[0], p[1] + d[1]}); !vs[p2] {
 					st, p, vs[p2] = st.push(p), p2, true
 					break
 				}
