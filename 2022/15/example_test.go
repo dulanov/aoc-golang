@@ -126,13 +126,13 @@ func abs(n int) int {
 }
 
 func intersect[T constraints.Ordered](vs1, vs2 []T) (rs []T) {
-	for i, j := 0, 0; i < len(vs1) && j < len(vs2); {
+	for i, j := 0, 0; i < len(vs1) && j < len(vs2); i, j = i+1, j+1 {
 		if vs1[i] < vs2[j] {
-			i++
+			j--
 		} else if vs1[i] > vs2[j] {
-			j++
+			i--
 		} else {
-			rs, i, j = append(rs, vs1[i]), i+1, j+1
+			rs = append(rs, vs1[i])
 		}
 	}
 	return rs
