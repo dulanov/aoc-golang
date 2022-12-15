@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"testing"
+
+	"golang.org/x/exp/constraints"
 )
 
 //go:embed testdata/input
@@ -25,8 +27,13 @@ func (p pos) manhattan(o pos) int {
 	return abs(p[0]-o[0]) + abs(p[1]-o[1])
 }
 
+type sens struct {
+	p pos
+	d int
+}
+
 func ExamplePartOne() {
-	fmt.Println(PartOne(strings.NewReader(input), 2000000))
+	fmt.Println(PartOne(strings.NewReader(input), 2_000_000))
 	// Output:
 	// 4873353
 }
@@ -34,7 +41,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 11600823139120
 }
 
 func TestPartOne(t *testing.T) {
@@ -47,19 +54,23 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(inputTest))
-	want := 0
+	want := 56_000_011
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
 	}
 }
 
 func PartOne(r io.Reader, y int) (n int) {
-	type reg = pos
-	bs, ss := scan(r)
-	rs := []reg{}
+	ss, bs := scan(r)
+	for _, b := range bs {
+		if b[1] == y {
+			n--
+		}
+	}
+	rs := []pos{} /* ranges */
 	for _, s := range ss {
 		if l := s.d - abs(s.p[1]-y); l >= 0 {
-			rs = append(rs, reg{s.p[0] - l, s.p[0] + l})
+			rs = append(rs, pos{s.p[0] - l, s.p[0] + l})
 		}
 	}
 	sort.Slice(rs, func(i, j int) bool {
@@ -72,15 +83,30 @@ func PartOne(r io.Reader, y int) (n int) {
 			n, l = n+rs[i][1]-l, rs[i][1]
 		}
 	}
-	for _, b := range bs {
-		if b[1] == y {
-			n--
-		}
-	}
+
 	return n
 }
 
-func PartTwo(r io.Reader) int {
+func PartTwo(r io.Reader) (n int) {
+	ss, _ := scan(r)
+	ls := [4][]int{} /* lines (4x90°) */
+	for _, s := range ss {
+		for i, d := range [][2]int{{1, -1}, {1, 1}, {-1, -1}, {-1, 1}} {
+			ls[i] = append(ls[i], s.p[0]+s.p[1]*d[0]+(s.d+1)*d[1])
+		}
+	}
+	for i := range ls {
+		sort.Ints(ls[i])
+	}
+	ls = [4][]int{intersect(unq(ls[0]), unq(ls[1])),
+		intersect(unq(ls[2]), unq(ls[3]))}
+	for _, l1 := range ls[0] {
+		for _, l2 := range ls[1] {
+			if p := (pos{(l1 + l2) / 2, (l1 - l2) / 2}); !reached(ss, p) {
+				return p[0]*4_000_000 + p[1]
+			}
+		}
+	}
 	return 0
 }
 
@@ -89,6 +115,28 @@ func abs(n int) int {
 		return -n
 	}
 	return n
+}
+
+func reached(ss []sens, p pos) bool {
+	for _, s := range ss {
+		if s.p.manhattan(p) <= s.d {
+			return true
+		}
+	}
+	return false
+}
+
+func intersect[T constraints.Ordered](vs1, vs2 []T) (rs []T) {
+	for i, j := 0, 0; i < len(vs1) && j < len(vs2); {
+		if vs1[i] < vs2[j] {
+			i++
+		} else if vs1[i] > vs2[j] {
+			j++
+		} else {
+			rs, i, j = append(rs, vs1[i]), i+1, j+1
+		}
+	}
+	return rs
 }
 
 func unq[T comparable](vs []T) (rs []T) {
@@ -101,23 +149,17 @@ func unq[T comparable](vs []T) (rs []T) {
 	return vs[:pr+1]
 }
 
-func scan(r io.Reader) (bs []pos, ss []struct {
-	p pos
-	d int
-}) {
+func scan(r io.Reader) (ss []sens, bs []pos) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		var p1, p2 pos
 		fmt.Sscanf(s.Text(), "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d",
 			&p1[0], &p1[1], &p2[0], &p2[1])
-		bs, ss = append(bs, p2), append(ss, struct {
-			p pos
-			d int
-		}{p1, p1.manhattan(p2)})
+		ss, bs = append(ss, sens{p1, p1.manhattan(p2)}), append(bs, p2)
 	}
 	sort.Slice(bs, func(i, j int) bool {
 		return bs[i].less(bs[j])
 	})
-	return unq(bs), ss
+	return ss, unq(bs)
 }
 
 const inputTest = `Sensor at x=2, y=18: closest beacon is at x=-2, y=15
