@@ -83,7 +83,6 @@ func PartOne(r io.Reader, y int) (n int) {
 			n, l = n+rs[i][1]-l, rs[i][1]
 		}
 	}
-
 	return n
 }
 
