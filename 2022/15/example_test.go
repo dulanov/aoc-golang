@@ -110,13 +110,6 @@ func PartTwo(r io.Reader) (n int) {
 	return 0
 }
 
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
-
 func reached(ss []sens, p pos) bool {
 	for _, s := range ss {
 		if s.p.manhattan(p) <= s.d {
@@ -124,6 +117,13 @@ func reached(ss []sens, p pos) bool {
 		}
 	}
 	return false
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
 }
 
 func intersect[T constraints.Ordered](vs1, vs2 []T) (rs []T) {
