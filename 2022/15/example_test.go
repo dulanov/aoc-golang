@@ -25,8 +25,6 @@ func (p pos) manhattan(o pos) int {
 	return abs(p[0]-o[0]) + abs(p[1]-o[1])
 }
 
-type reg = pos
-
 func ExamplePartOne() {
 	fmt.Println(PartOne(strings.NewReader(input), 2000000))
 	// Output:
@@ -56,6 +54,7 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader, y int) (n int) {
+	type reg = pos
 	bs, ss := scan(r)
 	rs := []reg{}
 	for _, s := range ss {
