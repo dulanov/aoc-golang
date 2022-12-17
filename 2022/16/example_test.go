@@ -33,7 +33,7 @@ func (s stack[T]) pop() (stack[T], T, bool) {
 
 type valve struct {
 	id, rt int
-	conns  []int
+	cs     []int
 }
 
 func ExamplePartOne() {
@@ -45,7 +45,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 1999
 }
 
 func TestPartOne(t *testing.T) {
@@ -66,18 +66,91 @@ func TestPartTwo(t *testing.T) {
 
 func PartOne(r io.Reader) (n int) {
 	vs := scan(r)
-	ds := make([][]int, len(vs))
+	ds, vs := fwa(vs), flt(vs, func(v valve) bool {
+		return v.rt > 0
+	})
+	return dfs(30, (1<<len(vs))-1, ds, vs)
+}
+
+func PartTwo(r io.Reader) (n int) {
+	vs := scan(r)
+	ds, vs := fwa(vs), flt(vs, func(v valve) bool {
+		return v.rt > 0
+	})
+	ps := make([]int, (len(vs)+1)/2)
+	for i := range ps {
+		ps[i] = i
+	}
+	for ps[len(ps)-1] != len(vs) {
+		pt1, pt2 := (1<<len(vs))-1, (1<<len(vs))-1
+		for _, i := range ps {
+			pt2 &^= 1 << i
+		}
+		pt1 &^= pt2
+		ch := make(chan int)
+		for _, pt := range []int{pt1, pt2} {
+			go func(pt int) {
+				ch <- dfs(26, pt, ds, vs)
+			}(pt)
+		}
+		if n1, n2 := <-ch, <-ch; n1+n2 > n {
+			n = n1 + n2
+		}
+		for i := 0; i < len(ps); i++ {
+			if i == len(ps)-1 || ps[i+1] != ps[i]+1 {
+				ps[i]++
+				for j := 0; j < i; j++ {
+					ps[j] = j
+				}
+				break
+			}
+		}
+	}
+	return n
+}
+
+// https://en.wikipedia.org/wiki/Depth-first_search#Pseudocode
+func dfs(lm, pt int, ds [][]int, vs []valve) (n int) {
+	type state struct {
+		tm, pt, rt, id int
+	}
+	gen := func(s state, ds [][]int, vs []valve) (ss []state) {
+		for i, j := 0, s.pt; j != 0; i, j = i+1, j>>1 {
+			if v := vs[i]; j&1 != 0 {
+				if t := s.tm - ds[s.id][v.id] - 1; t > 0 {
+					ss = append(ss, state{t, s.pt &^ (1 << i), s.rt + v.rt*t, v.id})
+				}
+			}
+		}
+		return ss
+	}
+	for st := (stack[state]{{lm, pt, 0, 0}}); !st.empty(); {
+		var s state
+		st, s, _ = st.pop()
+		if vs := gen(s, ds, vs); len(vs) != 0 {
+			st = st.push(vs...)
+			continue
+		}
+		if s.rt > n {
+			n = s.rt
+		}
+	}
+	return n
+}
+
+// https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm#Path_reconstruction
+func fwa(vs []valve) (ds [][]int) {
+	ds = make([][]int, len(vs))
 	for i := 0; i < len(vs); i++ {
 		ds[i] = make([]int, len(vs))
 		for j := 0; j < len(vs); j++ {
 			ds[i][j] = math.MaxUint8
 		}
-		for _, c := range vs[i].conns {
+		for _, c := range vs[i].cs {
 			ds[i][c] = 1
 		}
 		ds[i][i] = 0
 	}
-	// https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm#Path_reconstruction
 	for k := 0; k < len(vs); k++ {
 		for j := 0; j < len(vs); j++ {
 			for i := 0; i < len(vs); i++ {
@@ -87,32 +160,7 @@ func PartOne(r io.Reader) (n int) {
 			}
 		}
 	}
-	vs = flt(vs, func(v valve) bool {
-		return v.rt > 0
-	})
-	// https://en.wikipedia.org/wiki/Depth-first_search#Pseudocode
-	type state struct {
-		tm, pt, rt, id int
-	}
-	for st := (stack[state]{{30, (1 << len(vs)) - 1, 0, 0}}); !st.empty(); {
-		var s state
-		st, s, _ = st.pop()
-		if s.rt > n {
-			n = s.rt
-		}
-		for i, j := 0, s.pt; j != 0; i, j = i+1, j>>1 {
-			if v := vs[i]; j&1 != 0 {
-				if t := s.tm - ds[s.id][v.id] - 1; t > 0 {
-					st = st.push(state{t, s.pt &^ (1 << i), s.rt + v.rt*t, v.id})
-				}
-			}
-		}
-	}
-	return n
-}
-
-func PartTwo(r io.Reader) (n int) {
-	return n
+	return ds
 }
 
 func flt[T any](vs []T, fn func(v T) bool) (rs []T) {
@@ -129,20 +177,20 @@ func scan(r io.Reader) (vs []valve) {
 	ids, tls := map[string]int{"AA": 0}, [][]string{{""}}
 	rpl := strings.NewReplacer(", ", ",", "tunnel leads to valve", "tunnels lead to valves")
 	for i, s := 1, bufio.NewScanner(r); s.Scan(); i++ {
+		var n int
 		var s1, s2 string
-		v := valve{id: i}
 		fmt.Sscanf(rpl.Replace(s.Text()),
-			"Valve %s has flow rate=%d; tunnels lead to valves %s", &s1, &v.rt, &s2)
+			"Valve %s has flow rate=%d; tunnels lead to valves %s", &s1, &n, &s2)
 		if s1 == "AA" {
 			i, tls[0], vs[0] = i-1, strings.Split(s2, ","), valve{id: 0, rt: 0}
 			continue
 		}
-		ids[s1], tls, vs = i, append(tls, strings.Split(s2, ",")), append(vs, v)
+		ids[s1], tls, vs = i, append(tls, strings.Split(s2, ",")), append(vs, valve{id: i, rt: n})
 	}
 	for i, t := range tls {
-		vs[i].conns = make([]int, len(t))
+		vs[i].cs = make([]int, len(t))
 		for j, s := range t {
-			vs[i].conns[j] = ids[s]
+			vs[i].cs[j] = ids[s]
 		}
 	}
 	return vs
