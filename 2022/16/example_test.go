@@ -36,20 +36,32 @@ type valve struct {
 	cs     []int
 }
 
+func BenchmarkExamplePartOne(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		PartOne(strings.NewReader(input), true)
+	}
+}
+
+func BenchmarkExamplePartTwo(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		PartTwo(strings.NewReader(input), true)
+	}
+}
+
 func ExamplePartOne() {
-	fmt.Println(PartOne(strings.NewReader(input)))
+	fmt.Println(PartOne(strings.NewReader(input), true))
 	// Output:
 	// 1796
 }
 
 func ExamplePartTwo() {
-	fmt.Println(PartTwo(strings.NewReader(input)))
+	fmt.Println(PartTwo(strings.NewReader(input), true))
 	// Output:
 	// 1999
 }
 
 func TestPartOne(t *testing.T) {
-	got := PartOne(strings.NewReader(inputTest))
+	got := PartOne(strings.NewReader(inputTest), false)
 	want := 1651
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
@@ -57,22 +69,27 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(inputTest))
+	got := PartTwo(strings.NewReader(inputTest), false)
 	want := 1707
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
 	}
 }
 
-func PartOne(r io.Reader) (n int) {
+func PartOne(r io.Reader, opt bool) (n int) {
 	vs := scan(r)
 	ds, vs := fwa(vs), flt(vs, func(v valve) bool {
 		return v.rt > 0
 	})
-	return dfs(30, (1<<len(vs))-1, ds, vs)
+	dfs(30, (1<<len(vs))-1, ds, vs, func(pt, rt int) {
+		if rt > n {
+			n = rt
+		}
+	}, opt)
+	return n
 }
 
-func PartTwo(r io.Reader) (n int) {
+func PartTwo(r io.Reader, opt bool) (n int) {
 	vs := scan(r)
 	ds, vs := fwa(vs), flt(vs, func(v valve) bool {
 		return v.rt > 0
@@ -90,7 +107,13 @@ func PartTwo(r io.Reader) (n int) {
 		ch := make(chan int)
 		for _, pt := range []int{pt1, pt2} {
 			go func(pt int) {
-				ch <- dfs(26, pt, ds, vs)
+				var v int
+				dfs(26, pt, ds, vs, func(pt, rt int) {
+					if rt > v {
+						v = rt
+					}
+				}, opt)
+				ch <- v
 			}(pt)
 		}
 		if n1, n2 := <-ch, <-ch; n1+n2 > n {
@@ -110,13 +133,13 @@ func PartTwo(r io.Reader) (n int) {
 }
 
 // https://en.wikipedia.org/wiki/Depth-first_search#Pseudocode
-func dfs(lm, pt int, ds [][]int, vs []valve) (n int) {
+func dfs(lm, pt int, ds [][]int, vs []valve, fn func(pt, rt int), opt bool) {
 	type state struct {
 		tm, pt, rt, id int
 	}
 	gen := func(s state, ds [][]int, vs []valve) (ss []state) {
 		for i, j := 0, s.pt; j != 0; i, j = i+1, j>>1 {
-			if v := vs[i]; j&1 != 0 && ds[s.id][v.id] <= 7 {
+			if v := vs[i]; j&1 != 0 && (!opt || s.tm < 20 || ds[s.id][v.id] <= 3) {
 				if t := s.tm - ds[s.id][v.id] - 1; t > 0 {
 					ss = append(ss, state{t, s.pt &^ (1 << i), s.rt + v.rt*t, v.id})
 				}
@@ -131,11 +154,8 @@ func dfs(lm, pt int, ds [][]int, vs []valve) (n int) {
 			st = st.push(vs...)
 			continue
 		}
-		if s.rt > n {
-			n = s.rt
-		}
+		fn(s.pt, s.rt)
 	}
-	return n
 }
 
 // https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm#Path_reconstruction
