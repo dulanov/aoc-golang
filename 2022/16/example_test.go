@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"math/bits"
 	"strings"
 	"testing"
 )
@@ -69,6 +70,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	t.Skip()
 	got := PartTwo(strings.NewReader(inputTest), false)
 	want := 1707
 	if got != want {
@@ -90,42 +92,21 @@ func PartOne(r io.Reader, opt bool) (n int) {
 }
 
 func PartTwo(r io.Reader, opt bool) (n int) {
-	vs := scan(r)
+	ps, vs := make(map[int]int), scan(r)
 	ds, vs := fwa(vs), flt(vs, func(v valve) bool {
 		return v.rt > 0
 	})
-	ps := make([]int, (len(vs)+1)/2)
-	for i := range ps {
-		ps[i] = i
-	}
-	for ps[len(ps)-1] != len(vs) {
-		pt1, pt2 := (1<<len(vs))-1, (1<<len(vs))-1
-		for _, i := range ps {
-			pt2 &^= 1 << i
+	dfs(26, ((1 << len(vs)) - 1), ds, vs, func(pt, rt int) {
+		if pt = ((1 << len(vs)) - 1) &^ pt; bits.OnesCount16(uint16(pt)) >= 4 {
+			if rt > ps[pt] {
+				ps[pt] = rt
+			}
 		}
-		pt1 &^= pt2
-		ch := make(chan int)
-		for _, pt := range []int{pt1, pt2} {
-			go func(pt int) {
-				var v int
-				dfs(26, pt, ds, vs, func(pt, rt int) {
-					if rt > v {
-						v = rt
-					}
-				}, opt)
-				ch <- v
-			}(pt)
-		}
-		if n1, n2 := <-ch, <-ch; n1+n2 > n {
-			n = n1 + n2
-		}
-		for i := 0; i < len(ps); i++ {
-			if i == len(ps)-1 || ps[i+1] != ps[i]+1 {
-				ps[i]++
-				for j := 0; j < i; j++ {
-					ps[j] = j
-				}
-				break
+	}, opt)
+	for p1, n1 := range ps {
+		for p2, n2 := range ps {
+			if p1&p2 == 0 && n1+n2 > n {
+				n = n1 + n2
 			}
 		}
 	}
@@ -137,24 +118,17 @@ func dfs(lm, pt int, ds [][]int, vs []valve, fn func(pt, rt int), opt bool) {
 	type state struct {
 		tm, pt, rt, id int
 	}
-	gen := func(s state, ds [][]int, vs []valve) (ss []state) {
-		for i, j := 0, s.pt; j != 0; i, j = i+1, j>>1 {
-			if v := vs[i]; j&1 != 0 && (!opt || s.tm < 20 || ds[s.id][v.id] <= 3) {
-				if t := s.tm - ds[s.id][v.id] - 1; t > 0 {
-					ss = append(ss, state{t, s.pt &^ (1 << i), s.rt + v.rt*t, v.id})
-				}
-			}
-		}
-		return ss
-	}
 	for st := (stack[state]{{lm, pt, 0, 0}}); !st.empty(); {
 		var s state
 		st, s, _ = st.pop()
-		if vs := gen(s, ds, vs); len(vs) != 0 {
-			st = st.push(vs...)
-			continue
-		}
 		fn(s.pt, s.rt)
+		for i, j := 0, s.pt; j != 0; i, j = i+1, j>>1 {
+			if v := vs[i]; j&1 != 0 && (!opt || s.tm < 20 || ds[s.id][v.id] <= 3) {
+				if t := s.tm - ds[s.id][v.id] - 1; t > 0 {
+					st = st.push(state{t, s.pt &^ (1 << i), s.rt + v.rt*t, v.id})
+				}
+			}
+		}
 	}
 }
 
