@@ -116,7 +116,7 @@ func dfs(lm, pt int, ds [][]int, vs []valve) (n int) {
 	}
 	gen := func(s state, ds [][]int, vs []valve) (ss []state) {
 		for i, j := 0, s.pt; j != 0; i, j = i+1, j>>1 {
-			if v := vs[i]; j&1 != 0 {
+			if v := vs[i]; j&1 != 0 && ds[s.id][v.id] <= 7 {
 				if t := s.tm - ds[s.id][v.id] - 1; t > 0 {
 					ss = append(ss, state{t, s.pt &^ (1 << i), s.rt + v.rt*t, v.id})
 				}
