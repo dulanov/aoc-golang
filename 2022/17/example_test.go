@@ -108,9 +108,9 @@ func PartTwo(r io.Reader) int {
 }
 
 func sim(js []byte, n int) int {
-	cb, hs := []byte{0b1111_1111}, []int{}
+	cb := []byte{0b1111_1111}
 	ss := [...]shape{shp0, shp1, shp2, shp3, shp4}
-	for i, j, co := 0, 0, [3]int{}; i < n; i++ {
+	for i, j, co := 0, 0, []int{}; i < n; i++ {
 		for dx, dy, s := 2, len(cb)+3, ss[i%len(ss)]; ; dy, j = dy-1, j+1 {
 			if s.coll(cb, dx, dy) {
 				cb = s.land(cb, dx, dy+1)
@@ -126,14 +126,14 @@ func sim(js []byte, n int) int {
 		if j < len(js)*2 /* warmup */ {
 			continue
 		}
-		hs = append(hs, len(cb))
-		if co[0] == 0 /* cutoff */ {
-			co = [...]int{i, j % len(js), digest(cb)}
+		if len(co) == 0 /* cutoff */ {
+			co = append(co, i, j%len(js), digest(cb), len(cb))
 			continue
 		}
 		if o := i - co[0]; o%len(ss) == 0 && j%len(js) == co[1] && digest(cb) == co[2] {
-			return (n-co[0])/o*(hs[o]-hs[0]) + hs[(n-co[0])%o-1] - 1
+			return (n-co[0])/o*(len(cb)-co[3]) + co[(n-co[0])%o+2] - 1
 		}
+		co = append(co, len(cb))
 	}
 	return len(cb) - 1
 }
