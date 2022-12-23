@@ -14,6 +14,23 @@ import (
 //go:embed testdata/input
 var input string
 
+type stack[T any] []T
+
+func (s stack[T]) empty() bool {
+	return len(s) == 0
+}
+
+func (s stack[T]) push(v ...T) stack[T] {
+	return append(s, v...)
+}
+
+func (s stack[T]) pop() (stack[T], T, bool) {
+	if s.empty() {
+		return s, *new(T), false
+	}
+	return s[:len(s)-1], s[len(s)-1], true
+}
+
 const (
 	up dir = iota
 	fwd
@@ -46,6 +63,71 @@ func (s side) opposite() side {
 	return s
 }
 
+func (s side) neighbors() (ns [4][3]side) {
+	switch d := dir(s[3]); d /* 90° */ {
+	case up:
+		ns[0][0] = side{s[0], s[1] - 1, s[2] + 1, byte(fwd)}
+		ns[1][0] = side{s[0], s[1] + 1, s[2] + 1, byte(fwd.opposite())}
+		ns[2][0] = side{s[0] - 1, s[1], s[2] + 1, byte(rgt)}
+		ns[3][0] = side{s[0] + 1, s[1], s[2] + 1, byte(rgt.opposite())}
+	case up.opposite():
+		ns[0][0] = side{s[0], s[1] - 1, s[2] - 1, byte(fwd)}
+		ns[1][0] = side{s[0], s[1] + 1, s[2] - 1, byte(fwd.opposite())}
+		ns[2][0] = side{s[0] - 1, s[1], s[2] - 1, byte(rgt)}
+		ns[3][0] = side{s[0] + 1, s[1], s[2] - 1, byte(rgt.opposite())}
+	case fwd:
+		ns[0][0] = side{s[0], s[1] + 1, s[2] - 1, byte(up)}
+		ns[1][0] = side{s[0], s[1] + 1, s[2] + 1, byte(up.opposite())}
+		ns[2][0] = side{s[0] - 1, s[1] + 1, s[2], byte(rgt)}
+		ns[3][0] = side{s[0] + 1, s[1] + 1, s[2], byte(rgt.opposite())}
+	case fwd.opposite():
+		ns[0][0] = side{s[0], s[1] - 1, s[2] - 1, byte(up)}
+		ns[1][0] = side{s[0], s[1] - 1, s[2] + 1, byte(up.opposite())}
+		ns[2][0] = side{s[0] - 1, s[1] - 1, s[2], byte(rgt)}
+		ns[3][0] = side{s[0] + 1, s[1] - 1, s[2], byte(rgt.opposite())}
+	case rgt:
+		ns[0][0] = side{s[0] + 1, s[1], s[2] - 1, byte(up)}
+		ns[1][0] = side{s[0] + 1, s[1], s[2] + 1, byte(up.opposite())}
+		ns[2][0] = side{s[0] + 1, s[1] - 1, s[2], byte(fwd)}
+		ns[3][0] = side{s[0] + 1, s[1] + 1, s[2], byte(fwd.opposite())}
+	case rgt.opposite():
+		ns[0][0] = side{s[0] - 1, s[1], s[2] - 1, byte(up)}
+		ns[1][0] = side{s[0] - 1, s[1], s[2] + 1, byte(up.opposite())}
+		ns[2][0] = side{s[0] - 1, s[1] - 1, s[2], byte(fwd)}
+		ns[3][0] = side{s[0] - 1, s[1] + 1, s[2], byte(fwd.opposite())}
+	}
+	switch d := dir(s[3]); d /* 0° / 270° */ {
+	case up, up.opposite():
+		ns[0][1] = side{s[0], s[1] - 1, s[2], byte(d)}
+		ns[1][1] = side{s[0], s[1] + 1, s[2], byte(d)}
+		ns[2][1] = side{s[0] - 1, s[1], s[2], byte(d)}
+		ns[3][1] = side{s[0] + 1, s[1], s[2], byte(d)}
+		ns[0][2] = side{s[0], s[1], s[2], byte(fwd.opposite())}
+		ns[1][2] = side{s[0], s[1], s[2], byte(fwd)}
+		ns[2][2] = side{s[0], s[1], s[2], byte(rgt.opposite())}
+		ns[3][2] = side{s[0], s[1], s[2], byte(rgt)}
+	case fwd, fwd.opposite():
+		ns[0][1] = side{s[0], s[1], s[2] - 1, byte(d)}
+		ns[1][1] = side{s[0], s[1], s[2] + 1, byte(d)}
+		ns[2][1] = side{s[0] - 1, s[1], s[2], byte(d)}
+		ns[3][1] = side{s[0] + 1, s[1], s[2], byte(d)}
+		ns[0][2] = side{s[0], s[1], s[2], byte(up.opposite())}
+		ns[1][2] = side{s[0], s[1], s[2], byte(up)}
+		ns[2][2] = side{s[0], s[1], s[2], byte(rgt.opposite())}
+		ns[3][2] = side{s[0], s[1], s[2], byte(rgt)}
+	case rgt, rgt.opposite():
+		ns[0][1] = side{s[0], s[1], s[2] - 1, byte(d)}
+		ns[1][1] = side{s[0], s[1], s[2] + 1, byte(d)}
+		ns[2][1] = side{s[0], s[1] - 1, s[2], byte(d)}
+		ns[3][1] = side{s[0], s[1] + 1, s[2], byte(d)}
+		ns[0][2] = side{s[0], s[1], s[2], byte(up.opposite())}
+		ns[1][2] = side{s[0], s[1], s[2], byte(up)}
+		ns[2][2] = side{s[0], s[1], s[2], byte(fwd.opposite())}
+		ns[3][2] = side{s[0], s[1], s[2], byte(fwd)}
+	}
+	return ns
+}
+
 func ExamplePartOne() {
 	fmt.Println(PartOne(strings.NewReader(input)))
 	// Output:
@@ -55,7 +137,7 @@ func ExamplePartOne() {
 func ExamplePartTwo() {
 	fmt.Println(PartTwo(strings.NewReader(input)))
 	// Output:
-	// 0
+	// 2444
 }
 
 func TestPartOne(t *testing.T) {
@@ -87,11 +169,11 @@ func TestPartTwo(t *testing.T) {
 	}{
 		{
 			in:   inputTest0,
-			want: 0, //10,
+			want: 10,
 		},
 		{
 			in:   inputTest1,
-			want: 0, //58,
+			want: 58,
 		},
 	} {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -103,7 +185,35 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) (n int) {
-	cs, ss := scan(r), map[side]struct{}{}
+	return len(prep(scan(r)))
+}
+
+func PartTwo(r io.Reader) (n int) {
+	var fr side
+	ss := prep(scan(r))
+	for s := range ss {
+		if s[0] > fr[0] && s[3] == byte(rgt) {
+			fr = s
+		}
+	}
+	ss[fr] = true
+	return dfs(fr, func(s side) (ns []side) {
+		for _, fs := range s.neighbors() {
+			for _, fr := range fs {
+				if v, ok := ss[fr]; ok {
+					if !v {
+						ns, ss[fr] = append(ns, fr), true
+					}
+					break
+				}
+			}
+		}
+		return ns
+	})
+}
+
+func prep(cs [][3]byte) (ss map[side]bool) {
+	ss = map[side]bool{}
 	for _, c := range cs {
 		for _, d := range []dir{up, up.opposite(), fwd, fwd.opposite(), rgt, rgt.opposite()} {
 			s := side{c[0], c[1], c[2], byte(d)}
@@ -111,14 +221,21 @@ func PartOne(r io.Reader) (n int) {
 				delete(ss, s.opposite())
 				continue
 			}
-			ss[s] = struct{}{}
+			ss[s] = false
 		}
 	}
-	return len(ss)
+	return ss
 }
 
-func PartTwo(r io.Reader) int {
-	return 0
+func dfs(fr side, fn func(s side) []side) (n int) {
+	for st := (stack[side]{fr}); !st.empty(); n++ {
+		var s side
+		st, s, _ = st.pop()
+		for _, s = range fn(s) {
+			st = st.push(s)
+		}
+	}
+	return n
 }
 
 func scan(r io.Reader) (cs [][3]byte) {
