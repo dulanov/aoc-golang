@@ -58,12 +58,9 @@ func TestPartTwo(t *testing.T) {
 
 func PartOne(r io.Reader) (n int) {
 	cs := scan(r)
-	for i := 0; i < len(cs); i++ {
-		for j := 0; j < len(cs); j++ {
-			c1, c2 := cs[i], cs[j]
-			if (c1[0] == c2[0] && c1[1] == c2[1] && abs(c1[2]-c2[2]) == 1) ||
-				(c1[0] == c2[0] && c1[2] == c2[2] && abs(c1[1]-c2[1]) == 1) ||
-				(c1[1] == c2[1] && c1[2] == c2[2] && abs(c1[0]-c2[0]) == 1) {
+	for _, c1 := range cs {
+		for _, c2 := range cs {
+			if abs(c1[0]-c2[0])+abs(c1[1]-c2[1])+abs(c1[2]-c2[2]) == 1 {
 				n++
 			}
 		}
