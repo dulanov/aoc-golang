@@ -39,6 +39,36 @@ const (
 
 type dir byte
 
+func (d dir) adjacent() (dx, dy, dz byte) {
+	switch d {
+	case up:
+		return 0, 0, 1
+	case up.opposite():
+		return 0, 0, 255
+	case fwd:
+		return 0, 1, 0
+	case fwd.opposite():
+		return 0, 255, 0
+	case rgt:
+		return 1, 0, 0
+	case rgt.opposite():
+		return 255, 0, 0
+	}
+	return 0, 0, 0
+}
+
+func (d dir) neighbors() [4]dir {
+	switch d {
+	case up, up.opposite():
+		return [...]dir{fwd, fwd.opposite(), rgt, rgt.opposite()}
+	case fwd, fwd.opposite():
+		return [...]dir{up, up.opposite(), rgt, rgt.opposite()}
+	case rgt, rgt.opposite():
+		return [...]dir{up, up.opposite(), fwd, fwd.opposite()}
+	}
+	return [4]dir{}
+}
+
 func (d dir) opposite() dir {
 	return 8 - d
 }
@@ -46,84 +76,25 @@ func (d dir) opposite() dir {
 type side [4]byte
 
 func (s side) opposite() side {
-	switch d := dir(s[3]); d {
-	case up:
-		return side{s[0], s[1], s[2] + 1, byte(d.opposite())}
-	case up.opposite():
-		return side{s[0], s[1], s[2] - 1, byte(d.opposite())}
-	case fwd:
-		return side{s[0], s[1] + 1, s[2], byte(d.opposite())}
-	case fwd.opposite():
-		return side{s[0], s[1] - 1, s[2], byte(d.opposite())}
-	case rgt:
-		return side{s[0] + 1, s[1], s[2], byte(d.opposite())}
-	case rgt.opposite():
-		return side{s[0] - 1, s[1], s[2], byte(d.opposite())}
-	}
-	return s
+	dx, dy, dz := dir(s[3]).adjacent()
+	return side{s[0] + dx, s[1] + dy, s[2] + dz, byte(dir(s[3]).opposite())}
 }
 
 func (s side) neighbors() (ns [4][3]side) {
-	switch d := dir(s[3]); d /* 90° */ {
-	case up:
-		ns[0][0] = side{s[0], s[1] - 1, s[2] + 1, byte(fwd)}
-		ns[1][0] = side{s[0], s[1] + 1, s[2] + 1, byte(fwd.opposite())}
-		ns[2][0] = side{s[0] - 1, s[1], s[2] + 1, byte(rgt)}
-		ns[3][0] = side{s[0] + 1, s[1], s[2] + 1, byte(rgt.opposite())}
-	case up.opposite():
-		ns[0][0] = side{s[0], s[1] - 1, s[2] - 1, byte(fwd)}
-		ns[1][0] = side{s[0], s[1] + 1, s[2] - 1, byte(fwd.opposite())}
-		ns[2][0] = side{s[0] - 1, s[1], s[2] - 1, byte(rgt)}
-		ns[3][0] = side{s[0] + 1, s[1], s[2] - 1, byte(rgt.opposite())}
-	case fwd:
-		ns[0][0] = side{s[0], s[1] + 1, s[2] - 1, byte(up)}
-		ns[1][0] = side{s[0], s[1] + 1, s[2] + 1, byte(up.opposite())}
-		ns[2][0] = side{s[0] - 1, s[1] + 1, s[2], byte(rgt)}
-		ns[3][0] = side{s[0] + 1, s[1] + 1, s[2], byte(rgt.opposite())}
-	case fwd.opposite():
-		ns[0][0] = side{s[0], s[1] - 1, s[2] - 1, byte(up)}
-		ns[1][0] = side{s[0], s[1] - 1, s[2] + 1, byte(up.opposite())}
-		ns[2][0] = side{s[0] - 1, s[1] - 1, s[2], byte(rgt)}
-		ns[3][0] = side{s[0] + 1, s[1] - 1, s[2], byte(rgt.opposite())}
-	case rgt:
-		ns[0][0] = side{s[0] + 1, s[1], s[2] - 1, byte(up)}
-		ns[1][0] = side{s[0] + 1, s[1], s[2] + 1, byte(up.opposite())}
-		ns[2][0] = side{s[0] + 1, s[1] - 1, s[2], byte(fwd)}
-		ns[3][0] = side{s[0] + 1, s[1] + 1, s[2], byte(fwd.opposite())}
-	case rgt.opposite():
-		ns[0][0] = side{s[0] - 1, s[1], s[2] - 1, byte(up)}
-		ns[1][0] = side{s[0] - 1, s[1], s[2] + 1, byte(up.opposite())}
-		ns[2][0] = side{s[0] - 1, s[1] - 1, s[2], byte(fwd)}
-		ns[3][0] = side{s[0] - 1, s[1] + 1, s[2], byte(fwd.opposite())}
+	/* first attempt - 90° */
+	dx, dy, dz := dir(s[3]).adjacent()
+	for i, d := range dir(s[3]).neighbors() {
+		dx2, dy2, dz2 := d.opposite().adjacent()
+		ns[i][0] = side{s[0] + dx + dx2, s[1] + dy + dy2, s[2] + dz + dz2, byte(d)}
 	}
-	switch d := dir(s[3]); d /* 0° / 270° */ {
-	case up, up.opposite():
-		ns[0][1] = side{s[0], s[1] - 1, s[2], byte(d)}
-		ns[1][1] = side{s[0], s[1] + 1, s[2], byte(d)}
-		ns[2][1] = side{s[0] - 1, s[1], s[2], byte(d)}
-		ns[3][1] = side{s[0] + 1, s[1], s[2], byte(d)}
-		ns[0][2] = side{s[0], s[1], s[2], byte(fwd.opposite())}
-		ns[1][2] = side{s[0], s[1], s[2], byte(fwd)}
-		ns[2][2] = side{s[0], s[1], s[2], byte(rgt.opposite())}
-		ns[3][2] = side{s[0], s[1], s[2], byte(rgt)}
-	case fwd, fwd.opposite():
-		ns[0][1] = side{s[0], s[1], s[2] - 1, byte(d)}
-		ns[1][1] = side{s[0], s[1], s[2] + 1, byte(d)}
-		ns[2][1] = side{s[0] - 1, s[1], s[2], byte(d)}
-		ns[3][1] = side{s[0] + 1, s[1], s[2], byte(d)}
-		ns[0][2] = side{s[0], s[1], s[2], byte(up.opposite())}
-		ns[1][2] = side{s[0], s[1], s[2], byte(up)}
-		ns[2][2] = side{s[0], s[1], s[2], byte(rgt.opposite())}
-		ns[3][2] = side{s[0], s[1], s[2], byte(rgt)}
-	case rgt, rgt.opposite():
-		ns[0][1] = side{s[0], s[1], s[2] - 1, byte(d)}
-		ns[1][1] = side{s[0], s[1], s[2] + 1, byte(d)}
-		ns[2][1] = side{s[0], s[1] - 1, s[2], byte(d)}
-		ns[3][1] = side{s[0], s[1] + 1, s[2], byte(d)}
-		ns[0][2] = side{s[0], s[1], s[2], byte(up.opposite())}
-		ns[1][2] = side{s[0], s[1], s[2], byte(up)}
-		ns[2][2] = side{s[0], s[1], s[2], byte(fwd.opposite())}
-		ns[3][2] = side{s[0], s[1], s[2], byte(fwd)}
+	/* second attempt - 0° */
+	for i, d := range dir(s[3]).neighbors() {
+		dx2, dy2, dz2 := d.opposite().adjacent()
+		ns[i][1] = side{s[0] + dx2, s[1] + dy2, s[2] + dz2, s[3]}
+	}
+	/* third attempt - 270° */
+	for i, d := range dir(s[3]).neighbors() {
+		ns[i][2] = side{s[0], s[1], s[2], byte(d.opposite())}
 	}
 	return ns
 }
