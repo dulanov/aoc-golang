@@ -183,6 +183,17 @@ func PartTwo(r io.Reader) (n int) {
 	})
 }
 
+func dfs(fr side, fn func(s side) []side) (n int) {
+	for st := (stack[side]{fr}); !st.empty(); n++ {
+		var s side
+		st, s, _ = st.pop()
+		for _, s = range fn(s) {
+			st = st.push(s)
+		}
+	}
+	return n
+}
+
 func prep(cs [][3]byte) (ss map[side]bool) {
 	ss = map[side]bool{}
 	for _, c := range cs {
@@ -196,17 +207,6 @@ func prep(cs [][3]byte) (ss map[side]bool) {
 		}
 	}
 	return ss
-}
-
-func dfs(fr side, fn func(s side) []side) (n int) {
-	for st := (stack[side]{fr}); !st.empty(); n++ {
-		var s side
-		st, s, _ = st.pop()
-		for _, s = range fn(s) {
-			st = st.push(s)
-		}
-	}
-	return n
 }
 
 func scan(r io.Reader) (cs [][3]byte) {
