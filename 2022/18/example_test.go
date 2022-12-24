@@ -75,11 +75,6 @@ func (d dir) opposite() dir {
 
 type side [4]byte
 
-func (s side) opposite() side {
-	dx, dy, dz := dir(s[3]).adjacent()
-	return side{s[0] + dx, s[1] + dy, s[2] + dz, byte(dir(s[3]).opposite())}
-}
-
 func (s side) neighbors() (ns [4][3]side) {
 	/* first attempt - 90° */
 	dx, dy, dz := dir(s[3]).adjacent()
@@ -97,6 +92,11 @@ func (s side) neighbors() (ns [4][3]side) {
 		ns[i][2] = side{s[0], s[1], s[2], byte(d.opposite())}
 	}
 	return ns
+}
+
+func (s side) opposite() side {
+	dx, dy, dz := dir(s[3]).adjacent()
+	return side{s[0] + dx, s[1] + dy, s[2] + dz, byte(dir(s[3]).opposite())}
 }
 
 func ExamplePartOne() {
