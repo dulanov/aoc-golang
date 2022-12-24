@@ -49,7 +49,7 @@ func TestPartOne(t *testing.T) {
 	got := PartOne(strings.NewReader(inputTest))
 	want := rate{gamma: 0b10110, epsilon: 0b1001}
 	if got != want {
-		t.Errorf("got %s; want %s", got, want)
+		t.Errorf("got %+v; want %+v", got, want)
 	}
 }
 
@@ -57,7 +57,7 @@ func TestPartTwo(t *testing.T) {
 	got := PartTwo(strings.NewReader(inputTest))
 	want := rating{o2: 0b10111, co2: 0b01010}
 	if got != want {
-		t.Errorf("got %s; want %s", got, want)
+		t.Errorf("got %+v; want %+v", got, want)
 	}
 }
 
