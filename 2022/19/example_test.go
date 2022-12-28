@@ -8,6 +8,7 @@ import (
 	"io"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 
 	"golang.org/x/exp/constraints"
@@ -71,21 +72,21 @@ const (
 )
 
 func ExamplePartOne() {
-	ns := PartOne(strings.NewReader(input))
+	ns := PartOne(strings.NewReader(input), 3)
 	fmt.Println(fld(ns))
 	// Output:
 	// 1834
 }
 
 func ExamplePartTwo() {
-	ns := PartTwo(strings.NewReader(input), 3)
+	ns := PartTwo(strings.NewReader(input), 3, 3)
 	fmt.Println(mul(ns...))
 	// Output:
 	// 2240
 }
 
 func TestPartOne(t *testing.T) {
-	got := PartOne(strings.NewReader(inputTest))
+	got := PartOne(strings.NewReader(inputTest), 2)
 	want := []int{9, 12}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v; want %v", got, want)
@@ -93,23 +94,43 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(inputTest), 2)
+	got := PartTwo(strings.NewReader(inputTest), 2, 2)
 	want := []int{56, 62}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v; want %v", got, want)
 	}
 }
 
-func PartOne(r io.Reader) (ns []int) {
-	for _, b := range scan(r) {
-		ns = append(ns, opt(b, 24))
+func PartOne(r io.Reader, j int) (ns []int) {
+	bs, rs := scan(r), make([]int, j)
+	for i := 0; i < len(bs)-j+1; i += j {
+		var wg sync.WaitGroup
+		for j := range rs {
+			wg.Add(1)
+			go func(j int) {
+				defer wg.Done()
+				rs[j] = opt(bs[i+j], 24)
+			}(j)
+		}
+		wg.Wait()
+		ns = append(ns, rs...)
 	}
 	return ns
 }
 
-func PartTwo(r io.Reader, n int) (ns []int) {
-	for _, b := range scan(r)[:n] {
-		ns = append(ns, opt(b, 32))
+func PartTwo(r io.Reader, n, j int) (ns []int) {
+	bs, rs := scan(r)[:n], make([]int, j)
+	for i := 0; i < len(bs)-j+1; i += j {
+		var wg sync.WaitGroup
+		for j := range rs {
+			wg.Add(1)
+			go func(j int) {
+				defer wg.Done()
+				rs[j] = opt(bs[i+j], 32)
+			}(j)
+		}
+		wg.Wait()
+		ns = append(ns, rs...)
 	}
 	return ns
 }
