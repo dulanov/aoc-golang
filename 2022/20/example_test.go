@@ -63,7 +63,7 @@ func PartOne(r io.Reader) (rs [3]int) {
 		if v.vl > len(ns) {
 			v.vl = v.vl % (len(ns) - 1)
 		}
-		if v.vl < 0 {
+		for v.vl < 0 {
 			v.vl += len(ns) - 1
 		}
 		vs[v.pi].ni, vs[v.ni].pi = v.ni, v.pi
