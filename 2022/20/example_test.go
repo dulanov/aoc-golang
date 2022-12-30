@@ -33,7 +33,7 @@ func new[T any](vs []T) (c cycle[T]) {
 	return c
 }
 
-func (c *cycle[T]) mv(i, n int) {
+func (c *cycle[T]) move(i, n int) {
 	el := (*c)[i]
 	(*c)[el.pi].ni, (*c)[el.ni].pi = el.ni, el.pi
 	for j := 0; j < n; j++ {
@@ -44,12 +44,12 @@ func (c *cycle[T]) mv(i, n int) {
 	(*c)[j].ni, (*c)[el.ni].pi = i, i
 }
 
-func (c *cycle[T]) vl(i, n int) (v T) {
+func (c *cycle[T]) value(i, n int) (int, T) {
 	el := (*c)[i]
 	for j := 0; j < n; j++ {
 		el = (*c)[el.ni]
 	}
-	return el.pl
+	return (*c)[el.ni].pi, el.pl
 }
 
 func ExamplePartOne() {
@@ -94,9 +94,15 @@ func PartOne(r io.Reader) (rs [3]int) {
 		return [2]int{n, n%(l-1) + l - 1}
 	}))
 	for i := range cy {
-		cy.mv(i, cy.vl(i, 0)[1])
+		_, v := cy.value(i, 0)
+		cy.move(i, v[1])
 	}
-	return [...]int{cy.vl(idx, 1e3)[0], cy.vl(idx, 2e3)[0], cy.vl(idx, 3e3)[0]}
+	for i, j := 0, idx; i < 3; i++ {
+		var v [2]int
+		j, v = cy.value(j, 1e3)
+		rs[i] = v[0]
+	}
+	return rs
 }
 
 func PartTwo(r io.Reader) (rs [3]int) {
@@ -112,10 +118,16 @@ func PartTwo(r io.Reader) (rs [3]int) {
 	}))
 	for i := 0; i < 10; i++ {
 		for j := range cy {
-			cy.mv(j, cy.vl(j, 0)[1])
+			_, v := cy.value(j, 0)
+			cy.move(j, v[1])
 		}
 	}
-	return [...]int{cy.vl(idx, 1e3)[0], cy.vl(idx, 2e3)[0], cy.vl(idx, 3e3)[0]}
+	for i, j := 0, idx; i < 3; i++ {
+		var v [2]int
+		j, v = cy.value(j, 1e3)
+		rs[i] = v[0]
+	}
+	return rs
 }
 
 func conv[T1, T2 any](vs []T1, f func(int, int, T1) T2) (rs []T2) {
