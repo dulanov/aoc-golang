@@ -110,9 +110,9 @@ func PartTwo(r io.Reader) (rs [3]int) {
 		}
 		return [2]int{n, n%(l-1) + l - 1}
 	}))
-	for k := 0; k < 10; k++ {
-		for i := range cy {
-			cy.mv(i, cy.vl(i, 0)[1])
+	for i := 0; i < 10; i++ {
+		for j := range cy {
+			cy.mv(j, cy.vl(j, 0)[1])
 		}
 	}
 	return [...]int{cy.vl(idx, 1e3)[0], cy.vl(idx, 2e3)[0], cy.vl(idx, 3e3)[0]}
