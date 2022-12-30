@@ -72,14 +72,14 @@ const (
 )
 
 func ExamplePartOne() {
-	ns := PartOne(strings.NewReader(input), 3)
+	ns := PartOne(strings.NewReader(input), 2)
 	fmt.Println(fld(ns))
 	// Output:
 	// 1834
 }
 
 func ExamplePartTwo() {
-	ns := PartTwo(strings.NewReader(input), 3, 3)
+	ns := PartTwo(strings.NewReader(input), 3, 2)
 	fmt.Println(mul(ns...))
 	// Output:
 	// 2240
@@ -102,37 +102,15 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader, j int) (ns []int) {
-	bs, rs := scan(r), make([]int, j)
-	for i := 0; i < len(bs)-j+1; i += j {
-		var wg sync.WaitGroup
-		for j := range rs {
-			wg.Add(1)
-			go func(j int) {
-				defer wg.Done()
-				rs[j] = opt(bs[i+j], 24)
-			}(j)
-		}
-		wg.Wait()
-		ns = append(ns, rs...)
-	}
-	return ns
+	return conv(scan(r), j, func(b blueprint) int {
+		return opt(b, 24)
+	})
 }
 
 func PartTwo(r io.Reader, n, j int) (ns []int) {
-	bs, rs := scan(r)[:n], make([]int, j)
-	for i := 0; i < len(bs)-j+1; i += j {
-		var wg sync.WaitGroup
-		for j := range rs {
-			wg.Add(1)
-			go func(j int) {
-				defer wg.Done()
-				rs[j] = opt(bs[i+j], 32)
-			}(j)
-		}
-		wg.Wait()
-		ns = append(ns, rs...)
-	}
-	return ns
+	return conv(scan(r)[:n], j, func(b blueprint) int {
+		return opt(b, 32)
+	})
 }
 
 func opt(bl blueprint, m int) (n int) {
@@ -178,6 +156,22 @@ func dfs[T any](s T, fn func(s T) []T) {
 			st = st.push(s)
 		}
 	}
+}
+
+func conv[T1, T2 any](vs []T1, j int, fn func(v T1) T2) (rs []T2) {
+	rs = make([]T2, len(vs))
+	for i := 0; i < len(vs); i += j {
+		var wg sync.WaitGroup
+		for k := 0; k < j && i+k < len(vs); k++ {
+			wg.Add(1)
+			go func(k int) {
+				defer wg.Done()
+				rs[i+k] = fn(vs[i+k])
+			}(k)
+		}
+		wg.Wait()
+	}
+	return rs
 }
 
 func max[T constraints.Ordered](ns ...T) (n T) {
