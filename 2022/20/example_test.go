@@ -34,12 +34,15 @@ func new[T any](vs []T) (c cycle[T]) {
 }
 
 func (c *cycle[T]) move(i, n int) {
+	// if n == 0 {
+	// 	return
+	// }
 	el := (*c)[i]
 	(*c)[el.pi].ni, (*c)[el.ni].pi = el.ni, el.pi
 	for j := 0; j < n; j++ {
 		el = (*c)[el.ni]
 	}
-	j := (*c)[el.ni].pi
+	j := (*c)[el.pi].ni
 	(*c)[i].pi, (*c)[i].ni = j, el.ni
 	(*c)[j].ni, (*c)[el.ni].pi = i, i
 }
