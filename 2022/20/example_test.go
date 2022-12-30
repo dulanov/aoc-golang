@@ -116,8 +116,9 @@ func decode(ns []int, k, n, m int) (rs [3]int) {
 }
 
 func conv[T1, T2 any](vs []T1, f func(int, int, T1) T2) (rs []T2) {
+	rs = make([]T2, len(vs))
 	for i, v := range vs {
-		rs = append(rs, f(i, len(vs), v))
+		rs[i] = f(i, len(vs), v)
 	}
 	return rs
 }
