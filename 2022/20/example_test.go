@@ -16,13 +16,13 @@ import (
 //go:embed testdata/input
 var input string
 
-type cycle[T any] []struct {
+type ring[T any] []struct {
 	pi, ni int
 	pl     T
 }
 
-func new[T any](vs []T) (c cycle[T]) {
-	c = make(cycle[T], len(vs))
+func new[T any](vs []T) (c ring[T]) {
+	c = make(ring[T], len(vs))
 	for i, n := range vs {
 		c[i] = struct {
 			pi, ni int
@@ -33,26 +33,23 @@ func new[T any](vs []T) (c cycle[T]) {
 	return c
 }
 
-func (c *cycle[T]) move(i, n int) {
-	// if n == 0 {
-	// 	return
-	// }
-	el := (*c)[i]
-	(*c)[el.pi].ni, (*c)[el.ni].pi = el.ni, el.pi
-	for j := 0; j < n; j++ {
-		el = (*c)[el.ni]
+func (r *ring[T]) move(i, n int) {
+	if n%len(*r) == 0 {
+		return
 	}
-	j := (*c)[el.pi].ni
-	(*c)[i].pi, (*c)[i].ni = j, el.ni
-	(*c)[j].ni, (*c)[el.ni].pi = i, i
+	j, _ := r.find(i, n)
+	el, el2 := (*r)[i], (*r)[j]
+	(*r)[el.pi].ni, (*r)[el.ni].pi = el.ni, el.pi
+	(*r)[i].pi, (*r)[i].ni = j, el2.ni
+	(*r)[j].ni, (*r)[el2.ni].pi = i, i
 }
 
-func (c *cycle[T]) value(i, n int) (int, T) {
-	el := (*c)[i]
-	for j := 0; j < n; j++ {
-		el = (*c)[el.ni]
+func (r *ring[T]) find(i, n int) (int, T) {
+	el := (*r)[i]
+	for j := n % len(*r); j != 0; j-- {
+		i, el = el.ni, (*r)[el.ni]
 	}
-	return (*c)[el.ni].pi, el.pl
+	return i, el.pl
 }
 
 func ExamplePartOne() {
@@ -86,48 +83,33 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader) (rs [3]int) {
-	var idx int
-	cy := new(conv(scan(r), func(i, l, n int) [2]int {
-		if n == 0 {
-			idx = i
-		}
-		if n >= 0 {
-			return [2]int{n, n % (l - 1)}
-		}
-		return [2]int{n, n%(l-1) + l - 1}
-	}))
-	for i := range cy {
-		_, v := cy.value(i, 0)
-		cy.move(i, v[1])
-	}
-	for i, j := 0, idx; i < 3; i++ {
-		var v [2]int
-		j, v = cy.value(j, 1e3)
-		rs[i] = v[0]
-	}
-	return rs
+	return decode(scan(r), 1, 1, 1e3)
 }
 
 func PartTwo(r io.Reader) (rs [3]int) {
+	return decode(scan(r), 811589153, 10, 1e3)
+}
+
+func decode(ns []int, k, n, m int) (rs [3]int) {
 	var idx int
-	cy := new(conv(scan(r), func(i, l, n int) [2]int {
+	rg := new(conv(ns, func(i, l, n int) [2]int {
 		if n == 0 {
 			idx = i
 		}
-		if n *= 811589153; n >= 0 {
+		if n *= k; n >= 0 {
 			return [2]int{n, n % (l - 1)}
 		}
 		return [2]int{n, n%(l-1) + l - 1}
 	}))
-	for i := 0; i < 10; i++ {
-		for j := range cy {
-			_, v := cy.value(j, 0)
-			cy.move(j, v[1])
+	for i := 0; i < n; i++ {
+		for j := range rg {
+			_, v := rg.find(j, 0)
+			rg.move(j, v[1])
 		}
 	}
-	for i, j := 0, idx; i < 3; i++ {
+	for i, j := 0, idx; i < len(rs); i++ {
 		var v [2]int
-		j, v = cy.value(j, 1e3)
+		j, v = rg.find(j, m)
 		rs[i] = v[0]
 	}
 	return rs
