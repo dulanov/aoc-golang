@@ -27,10 +27,6 @@ func (s stack[T]) peak() (T, bool) {
 	return s[len(s)-1], true
 }
 
-func (s stack[T]) push(v ...T) stack[T] {
-	return append(s, v...)
-}
-
 func (s stack[T]) pop() (stack[T], T, bool) {
 	if s.empty() {
 		return s, *new(T), false
