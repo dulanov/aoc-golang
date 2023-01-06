@@ -30,9 +30,9 @@ func (c cube) next(p pos, tr trans) (pos, bool) {
 		}
 		return p2, true
 	}
-	sd, n := tr(p.side, p.dir)
-	p2.side, p2.col, p2.row = sd, (p2.col+l)%l, (p2.row+l)%l
-	for i := 0; i < n; i++ {
+	n1, n2 := tr(p.side, p.dir)
+	p2.side, p2.col, p2.row = n1, (p2.col+l)%l, (p2.row+l)%l
+	for i := 0; i < n2; i++ {
 		p2 = c.rotate(p2)
 	}
 	if b, _ := c.at(p2); b == wall {
@@ -109,13 +109,15 @@ const (
 )
 
 func ExamplePartOne() {
-	fmt.Println(score(PartOne(strings.NewReader(input), 50)))
+	p, c := PartOne(strings.NewReader(input), 50)
+	fmt.Println(score(p, c))
 	// Output:
 	// 126350
 }
 
 func ExamplePartTwo() {
-	fmt.Println(score(PartTwo(strings.NewReader(input), 50)))
+	p, c := PartTwo(strings.NewReader(input), 50)
+	fmt.Println(score(p, c))
 	// Output:
 	// 129339
 }
@@ -139,7 +141,8 @@ func TestPartTwo(t *testing.T) {
 func PartOne(r io.Reader, w int) (p pos, c cube) {
 	c, irs := scan(r, w)
 	return exec(c, irs, func(n, d int) (int, int) {
-		for p := (pos{col: c[n].i, row: c[n].j, dir: d}).next(); ; p = p.next() {
+		p := pos{col: c[n].i, row: c[n].j, dir: d}
+		for p.next(); ; p = p.next() {
 			if b, ok := c.find((p.col+4)%4, (p.row+4)%4); ok {
 				return b, 0
 			}
