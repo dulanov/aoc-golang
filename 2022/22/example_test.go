@@ -142,7 +142,7 @@ func PartOne(r io.Reader, w int) (p pos, c cube) {
 	c, irs := scan(r, w)
 	return exec(c, irs, func(n, d int) (int, int) {
 		p := pos{col: c[n].i, row: c[n].j, dir: d}
-		for p.next(); ; p = p.next() {
+		for p = p.next(); ; p = p.next() {
 			if b, ok := c.find((p.col+4)%4, (p.row+4)%4); ok {
 				return b, 0
 			}
