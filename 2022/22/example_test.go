@@ -20,27 +20,6 @@ type cube [6]struct {
 	bs      []byte
 }
 
-type trans func(side, dir int) (side2 int, rots int)
-
-func (c cube) next(p pos, tr trans) (pos, bool) {
-	p2, l := p.next(), c[p.side].l
-	if b, ok := c.at(p2); ok {
-		if b == wall {
-			return p, false
-		}
-		return p2, true
-	}
-	n1, n2 := tr(p.side, p.dir)
-	p2.side, p2.col, p2.row = n1, (p2.col+l)%l, (p2.row+l)%l
-	for i := 0; i < n2; i++ {
-		p2 = c.rotate(p2)
-	}
-	if b, _ := c.at(p2); b == wall {
-		return p, false
-	}
-	return p2, true
-}
-
 func (c cube) rotate(p pos) pos {
 	switch l := c[p.side].l; p.dir {
 	case right: /* -> down */
@@ -109,48 +88,50 @@ const (
 )
 
 func ExamplePartOne() {
-	p, c := PartOne(strings.NewReader(input), 50)
-	fmt.Println(score(p, c))
+	ns := PartOne(strings.NewReader(input), 50)
+	fmt.Println(ns[0]*1000 + ns[1]*4 + ns[2])
 	// Output:
 	// 126350
 }
 
 func ExamplePartTwo() {
-	p, c := PartTwo(strings.NewReader(input), 50)
-	fmt.Println(score(p, c))
+	ns := PartTwo(strings.NewReader(input), 50)
+	fmt.Println(ns[0]*1000 + ns[1]*4 + ns[2])
 	// Output:
 	// 129339
 }
 
 func TestPartOne(t *testing.T) {
-	got, _ := PartOne(strings.NewReader(inputTest), 4)
-	want := pos{side: 2, row: 1, col: 3, dir: right}
+	got := PartOne(strings.NewReader(inputTest), 4)
+	want := [3]int{6, 8, right}
 	if got != want {
 		t.Errorf("got %+v; want %+v", got, want)
 	}
 }
 
 func TestPartTwo(t *testing.T) {
-	got, _ := PartTwo(strings.NewReader(inputTest), 4)
-	want := pos{side: 2, row: 0, col: 2, dir: up}
+	got := PartTwo(strings.NewReader(inputTest), 4)
+	want := [3]int{5, 7, up}
 	if got != want {
 		t.Errorf("got %+v; want %+v", got, want)
 	}
 }
 
-func PartOne(r io.Reader, w int) (p pos, c cube) {
+func PartOne(r io.Reader, w int) (ns [3]int) {
 	c, irs := scan(r, w)
-	return exec(c, irs, func(n, d int) (int, int) {
+	p := exec(c, irs, func(n, d int) (int, int) {
 		p := pos{col: c[n].i, row: c[n].j, dir: d}
 		for p = p.next(); ; p = p.next() {
 			if b, ok := c.find((p.col+4)%4, (p.row+4)%4); ok {
 				return b, 0
 			}
 		}
-	}), c
+	})
+	return [3]int{p.row + c[p.side].j*c[p.side].l + 1,
+		p.col + c[p.side].i*c[p.side].l + 1, p.dir}
 }
 
-func PartTwo(r io.Reader, w int) (p pos, c cube) {
+func PartTwo(r io.Reader, w int) (ns [3]int) {
 	c, irs := scan(r, w)
 	m := make(map[[2]int][2]int, 24)
 	if w == 4 {
@@ -172,29 +153,37 @@ func PartTwo(r io.Reader, w int) (p pos, c cube) {
 			{5, right}: {4, 3}, {5, down}: {1, 0}, {5, left}: {0, 3}, {5, up}: {3, 0},
 		}
 	}
-	return exec(c, irs, func(n, d int) (int, int) {
+	p := exec(c, irs, func(n, d int) (int, int) {
 		ns := m[[2]int{n, d}]
 		return ns[0], ns[1]
-	}), c
+	})
+	return [3]int{p.row + c[p.side].j*c[p.side].l + 1,
+		p.col + c[p.side].i*c[p.side].l + 1, p.dir}
 }
 
-func exec(c cube, irs []instr, tr trans) (p pos) {
+func exec(c cube, irs []instr, tr func(s, d int) (int, int)) (p pos) {
 	p.col = bytes.IndexByte(c[0].bs, open)
 	for _, ir := range irs {
 		p.dir = (p.dir + ir.rot) % 4
-		for i := 0; i < ir.num; i++ {
-			var ok bool
-			if p, ok = c.next(p, tr); !ok {
+		for i, p2 := 0, p.next(); i < ir.num; i, p, p2 = i+1, p2, p2.next() {
+			if b, ok := c.at(p2); ok {
+				if b == wall {
+					break
+				}
+				continue
+			}
+			l := c[p.side].l
+			n1, n2 := tr(p.side, p.dir)
+			p2.side, p2.col, p2.row = n1, (p2.col+l)%l, (p2.row+l)%l
+			for i := 0; i < n2; i++ {
+				p2 = c.rotate(p2)
+			}
+			if b, _ := c.at(p2); b == wall {
 				break
 			}
 		}
 	}
 	return p
-}
-
-func score(p pos, c cube) (n int) {
-	s := c[p.side]
-	return (s.j*s.l+p.row+1)*1000 + (s.i*s.l+p.col+1)*4 + p.dir
 }
 
 func scan(r io.Reader, w int) (c cube, irs []instr) {
