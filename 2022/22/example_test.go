@@ -20,6 +20,16 @@ type cube [6]struct {
 	bs      []byte
 }
 
+func (c cube) next(n, d, r int) (int, int) {
+	for i, p := 0, (pos{col: c[n].i, row: c[n].j, dir: d}); ; i++ {
+		p = p.next()
+		if b, ok := c.find((p.col+6)%6, (p.row+6)%6); ok {
+			return b, (r * i) % 4
+		}
+		p.dir = (p.dir + r) % 4
+	}
+}
+
 func (c cube) rotate(p pos) pos {
 	switch l := c[p.side].l; p.dir {
 	case right: /* -> down */
@@ -34,15 +44,6 @@ func (c cube) rotate(p pos) pos {
 	return pos{p.side, p.row, p.col, (p.dir + 1) % 4}
 }
 
-func (c cube) find(i, j int) (int, bool) {
-	for n, s := range c {
-		if s.i == i && s.j == j {
-			return n, true
-		}
-	}
-	return 0, false
-}
-
 func (c cube) at(p pos) (byte, bool) {
 	s := c[p.side]
 	if p.row < 0 || p.row >= s.l ||
@@ -50,6 +51,15 @@ func (c cube) at(p pos) (byte, bool) {
 		return empty, false
 	}
 	return s.bs[p.row*s.l+p.col], true
+}
+
+func (c cube) find(i, j int) (int, bool) {
+	for n, s := range c {
+		if s.i == i && s.j == j {
+			return n, true
+		}
+	}
+	return 0, false
 }
 
 type pos struct {
@@ -120,12 +130,7 @@ func TestPartTwo(t *testing.T) {
 func PartOne(r io.Reader, w int) (ns [3]int) {
 	c, irs := scan(r, w)
 	p := exec(c, irs, func(n, d int) (int, int) {
-		p := pos{col: c[n].i, row: c[n].j, dir: d}
-		for p = p.next(); ; p = p.next() {
-			if b, ok := c.find((p.col+4)%4, (p.row+4)%4); ok {
-				return b, 0
-			}
-		}
+		return c.next(n, d, 0 /* direct */)
 	})
 	return [3]int{p.row + c[p.side].j*c[p.side].l + 1,
 		p.col + c[p.side].i*c[p.side].l + 1, p.dir}
@@ -133,30 +138,22 @@ func PartOne(r io.Reader, w int) (ns [3]int) {
 
 func PartTwo(r io.Reader, w int) (ns [3]int) {
 	c, irs := scan(r, w)
-	m := make(map[[2]int][2]int, 24)
-	if w == 4 {
-		m = map[[2]int][2]int{
-			{0, right}: {5, 2}, {0, down}: {3, 0}, {0, left}: {2, 3}, {0, up}: {1, 2},
-			{1, right}: {2, 0}, {1, down}: {4, 2}, {1, left}: {5, 1}, {1, up}: {0, 2},
-			{2, right}: {3, 0}, {2, down}: {4, 3}, {2, left}: {1, 0}, {2, up}: {0, 1},
-			{3, right}: {5, 1}, {3, down}: {4, 0}, {3, left}: {2, 0}, {3, up}: {0, 0},
-			{4, right}: {5, 0}, {4, down}: {1, 2}, {4, left}: {2, 1}, {4, up}: {3, 0},
-			{5, right}: {0, 2}, {5, down}: {1, 3}, {5, left}: {4, 0}, {5, up}: {3, 3},
+	var tr func(n, d int) (int, int)
+	tr = func(n, d int) (int, int) {
+		n, r := c.next(n, d, 1 /* clockwise */)
+		if r == 0 || r == 1 {
+			return n, r
 		}
-	} else /* w == 50 */ {
-		m = map[[2]int][2]int{
-			{0, right}: {1, 0}, {0, down}: {2, 0}, {0, left}: {3, 2}, {0, up}: {5, 1},
-			{1, right}: {4, 2}, {1, down}: {2, 1}, {1, left}: {0, 0}, {1, up}: {5, 0},
-			{2, right}: {1, 3}, {2, down}: {4, 0}, {2, left}: {3, 3}, {2, up}: {0, 0},
-			{3, right}: {4, 0}, {3, down}: {5, 0}, {3, left}: {0, 2}, {3, up}: {2, 1},
-			{4, right}: {1, 2}, {4, down}: {5, 1}, {4, left}: {3, 0}, {4, up}: {2, 0},
-			{5, right}: {4, 3}, {5, down}: {1, 0}, {5, left}: {0, 3}, {5, up}: {3, 0},
+		for i, d2 := 0, (d+r+2)%4; ; d2 = (d2 + r + 2) % 4 {
+			n, r = tr(n, d2)
+			i, d2 = (i+r)%4, (d2+r+2)%4
+			n, r = c.next(n, d2, 1 /* clockwise */)
+			if (d2+r-d)%4 == (i+1)%4 {
+				return n, i + 1
+			}
 		}
 	}
-	p := exec(c, irs, func(n, d int) (int, int) {
-		ns := m[[2]int{n, d}]
-		return ns[0], ns[1]
-	})
+	p := exec(c, irs, tr)
 	return [3]int{p.row + c[p.side].j*c[p.side].l + 1,
 		p.col + c[p.side].i*c[p.side].l + 1, p.dir}
 }
