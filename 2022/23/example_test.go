@@ -62,7 +62,7 @@ const (
 )
 
 func ExamplePartOne() {
-	fmt.Println(PartOne(strings.NewReader(input), 10))
+	fmt.Println(PartOne(strings.NewReader(input)))
 	// Output:
 	// 3947
 }
@@ -74,7 +74,7 @@ func ExamplePartTwo() {
 }
 
 func TestPartOne(t *testing.T) {
-	got := PartOne(strings.NewReader(inputTest), 10)
+	got := PartOne(strings.NewReader(inputTest))
 	want := 110
 	if got != want {
 		t.Errorf("got %d; want %d", got, want)
@@ -89,7 +89,7 @@ func TestPartTwo(t *testing.T) {
 	}
 }
 
-func PartOne(r io.Reader, n int) (m int) {
+func PartOne(r io.Reader) (n int) {
 	ps := scan(r)
 	proc(ps, 10)
 	p1, p2 := rect(ps)
