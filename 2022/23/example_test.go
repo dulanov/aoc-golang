@@ -97,8 +97,7 @@ func PartOne(r io.Reader) (n int) {
 }
 
 func PartTwo(r io.Reader) (n int) {
-	m := proc(scan(r), -1)
-	return m
+	return proc(scan(r), -1)
 }
 
 func proc(ps map[pos]struct{}, n int) (m int) {
