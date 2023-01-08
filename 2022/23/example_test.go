@@ -106,10 +106,7 @@ func proc(ps map[pos]struct{}, n int) (m int) {
 		{south, southeast, southwest},
 		{west, northwest, southwest},
 		{east, northeast, southeast}}
-	if n == -1 {
-		n = math.MaxInt
-	}
-	for i := 0; i < n; i++ {
+	for i := 0; ; i++ {
 		ms := map[pos]pos{}
 		for p := range ps {
 			for _, d := range []dir{north, south, west, east,
@@ -138,15 +135,14 @@ func proc(ps map[pos]struct{}, n int) (m int) {
 				break
 			}
 		}
-		if len(ms) == 0 {
-			return i + 1
-		}
 		for p2, p := range ms {
 			delete(ps, p)
 			ps[p2] = struct{}{}
 		}
+		if i == n - 1 || len(ms) == 0 {
+			return i + 1
+		}
 	}
-	return n
 }
 
 func rect(ps map[pos]struct{}) (p1, p2 pos) {
