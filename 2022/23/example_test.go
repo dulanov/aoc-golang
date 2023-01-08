@@ -90,17 +90,18 @@ func TestPartTwo(t *testing.T) {
 }
 
 func PartOne(r io.Reader, n int) (m int) {
-	_, ps := proc(scan(r), 10)
+	ps := scan(r)
+	proc(ps, 10)
 	p1, p2 := rect(ps)
 	return p1.area(p2) - len(ps)
 }
 
 func PartTwo(r io.Reader) (n int) {
-	m, _ := proc(scan(r), -1)
+	m := proc(scan(r), -1)
 	return m
 }
 
-func proc(ps map[pos]struct{}, n int) (m int, rs map[pos]struct{}) {
+func proc(ps map[pos]struct{}, n int) (m int) {
 	ds := [4][3]dir{
 		{north, northeast, northwest},
 		{south, southeast, southwest},
@@ -139,14 +140,14 @@ func proc(ps map[pos]struct{}, n int) (m int, rs map[pos]struct{}) {
 			}
 		}
 		if len(ms) == 0 {
-			return i + 1, ps
+			return i + 1
 		}
 		for p2, p := range ms {
 			delete(ps, p)
 			ps[p2] = struct{}{}
 		}
 	}
-	return n, ps
+	return n
 }
 
 func rect(ps map[pos]struct{}) (p1, p2 pos) {
