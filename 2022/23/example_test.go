@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"math"
 	"strings"
 	"testing"
 )
