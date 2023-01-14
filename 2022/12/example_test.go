@@ -87,7 +87,7 @@ func PartTwo(r io.Reader) int {
 }
 
 func bfs(fr int, ps func(p int) []int, ck func(p int) bool) (n int) {
-	for q := (queue[int]{fr, -1}); !q.empty(); {
+	for q := (queue[int]{fr, -1}); ; {
 		var p int
 		q, p, _ = q.deq()
 		if p == -1 {
@@ -99,7 +99,6 @@ func bfs(fr int, ps func(p int) []int, ck func(p int) bool) (n int) {
 		}
 		q = q.enq(ps(p)...)
 	}
-	return -1
 }
 
 func abs(n int) int {
