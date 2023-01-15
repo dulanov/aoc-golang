@@ -6,7 +6,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"reflect"
 	"strings"
 	"testing"
 )
@@ -99,29 +98,27 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	n1, n2, n3 := PartTwo(strings.NewReader(inputTest))
-	want := []int{18, 23, 13}
-	if !reflect.DeepEqual([]int{n1, n2, n3}, want) {
-		t.Errorf("got %v; want %v", []int{n1, n2, n3}, want)
+	want := [3]int{18, 23, 13}
+	if [3]int{n1, n2, n3} != want {
+		t.Errorf("got %v; want %v", [3]int{n1, n2, n3}, want)
 	}
 }
 
 func PartOne(r io.Reader) (n int) {
-	w, bs := scan(r)
-	p, h := -w, len(bs)/w
-	return steps(p, len(bs)-1, 0, h, w, bs) + 1
+	h, w, bs := scan(r)
+	return steps(-w, len(bs)-1, 0, h, w, bs) + 1
 }
 
 func PartTwo(r io.Reader) (n1, n2, n3 int) {
-	w, bs := scan(r)
-	p1, p2, h := -w, len(bs)+w-1, len(bs)/w
-	n1 = steps(p1, len(bs)-1, 0, h, w, bs) + 1
-	n2 = steps(p2, 0, n1, h, w, bs) + 1
-	n3 = steps(p1, len(bs)-1, n1+n2, h, w, bs) + 1
+	h, w, bs := scan(r)
+	n1 = steps(-w, len(bs)-1, 0, h, w, bs) + 1
+	n2 = steps(len(bs)+w-1, 0, n1, h, w, bs) + 1
+	n3 = steps(-w, len(bs)-1, n1+n2, h, w, bs) + 1
 	return n1, n2, n3
 }
 
 func steps(fr, to, of, h, w int, bs []dir) (n int) {
-	fs, vs := make([][]bool, lcm(len(bs)/w, w)), make(map[[2]int]bool)
+	fs := make([][]bool, lcm(len(bs)/w, w))
 	for i := range fs {
 		fs[i] = make([]bool, len(bs))
 	}
@@ -133,6 +130,7 @@ func steps(fr, to, of, h, w int, bs []dir) (n int) {
 			fs[j][p], p = true, d.blow(p, h, w)
 		}
 	}
+	vs := make(map[int]bool)
 	bfs(fr, func(p int) bool {
 		return p == to
 	}, func(p int) (ps []int) {
@@ -140,13 +138,13 @@ func steps(fr, to, of, h, w int, bs []dir) (n int) {
 			ps = append(ps, p)
 		}
 		for _, d := range []dir{nn, dn, rt, lt, up} {
-			if p, ok := d.move(p, h, w); ok && !vs[[2]int{n, p}] && !fs[(n+of+1)%len(fs)][p] {
-				ps, vs[[2]int{n, p}] = append(ps, p), true
+			if p, ok := d.move(p, h, w); ok && !vs[p] && !fs[(n+of+1)%len(fs)][p] {
+				ps, vs[p] = append(ps, p), true
 			}
 		}
 		return ps
 	}, func() {
-		n++
+		n, vs = n+1, make(map[int]bool)
 	})
 	return n
 }
@@ -177,7 +175,7 @@ func gcd(n1, n2 int) int {
 	return n1
 }
 
-func scan(r io.Reader) (w int, bs []dir) {
+func scan(r io.Reader) (h, w int, bs []dir) {
 	for s := bufio.NewScanner(r); s.Scan(); {
 		if w == 0 {
 			w = len(s.Text()) - 2
@@ -188,7 +186,7 @@ func scan(r io.Reader) (w int, bs []dir) {
 		}
 		bs = append(bs, []dir(s.Text())[1:w+1]...)
 	}
-	return w, bs
+	return len(bs) / w, w, bs
 }
 
 const inputTest = `#.######
