@@ -32,23 +32,22 @@ func (q queue[T]) deq() (queue[T], T, bool) {
 
 type dir byte
 
-func (d dir) blow(p int, h, w int) int {
-	switch d {
+func (d dir) blow(p, n, h, w int) int {
+	switch l := h * w; d {
 	case up:
-		return (p - w + h*w) % (h * w)
+		return (p - (w*n)%l + l) % l
 	case dn:
-		return (p + w) % (h * w)
+		return (p + w*n) % l
 	case rt:
-		return (p/w)*w + (p+1)%w
+		return (p/w)*w + (p+n)%w
 	case lt:
-		return (p/w)*w + (p-1+w)%w
+		return (p/w)*w + (p-n%w+w)%w
 	}
 	return p
 }
 
-func (d dir) move(p int, h, w int) (int, bool) {
+func (d dir) move(p, h, w int) (int, bool) {
 	switch d {
-	case nn:
 	case up:
 		p -= w
 	case dn:
@@ -65,6 +64,20 @@ func (d dir) move(p int, h, w int) (int, bool) {
 		p--
 	}
 	return p, p >= 0 && p < h*w
+}
+
+func (d dir) opposite() dir {
+	switch d {
+	case up:
+		return dn
+	case dn:
+		return up
+	case rt:
+		return lt
+	case lt:
+		return rt
+	}
+	return nn
 }
 
 const (
@@ -117,39 +130,34 @@ func PartTwo(r io.Reader) (n1, n2, n3 int) {
 	return n1, n2, n3
 }
 
-func steps(fr, to, of, h, w int, bs []dir) (n int) {
-	fs := make([][]bool, lcm(len(bs)/w, w))
-	for i := range fs {
-		fs[i] = make([]bool, len(bs))
-	}
-	for i, d := range bs {
-		if d == nn {
-			continue
-		}
-		for j, p := 0, i; j < len(fs); j++ {
-			fs[j][p], p = true, d.blow(p, h, w)
-		}
-	}
+func steps(p1, p2, m, h, w int, bs []dir) (n int) {
 	vs := make(map[int]bool)
-	bfs(fr, func(p int) bool {
-		return p == to
+	bfs(p1, func(p int) bool {
+		return p == p2
+	}, func() {
+		n, vs = n+1, make(map[int]bool)
 	}, func(p int) (ps []int) {
-		if p == fr {
+		if p == p1 {
 			ps = append(ps, p)
 		}
-		for _, d := range []dir{nn, dn, rt, lt, up} {
-			if p, ok := d.move(p, h, w); ok && !vs[p] && !fs[(n+of+1)%len(fs)][p] {
-				ps, vs[p] = append(ps, p), true
+	outer:
+		for _, d := range []dir{nn, up, dn, rt, lt} {
+			if p, ok := d.move(p, h, w); ok && !vs[p] {
+				vs[p] = true
+				for _, d2 := range []dir{up, dn, rt, lt} {
+					if p2 := d2.opposite().blow(p, n+m+1, h, w); bs[p2] == d2 {
+						continue outer
+					}
+				}
+				ps = append(ps, p)
 			}
 		}
 		return ps
-	}, func() {
-		n, vs = n+1, make(map[int]bool)
 	})
 	return n
 }
 
-func bfs[T comparable](s T, ck func(s T) bool, gn func(s T) []T, ll func()) {
+func bfs[T any](s T, ck func(s T) bool, ll func(), gn func(s T) []T) {
 	for q, n := (queue[T]{s}), 1; !q.empty(); n-- {
 		if n == 0 {
 			n = len(q)
@@ -162,17 +170,6 @@ func bfs[T comparable](s T, ck func(s T) bool, gn func(s T) []T, ll func()) {
 		}
 		q = q.enq(gn(s)...)
 	}
-}
-
-func lcm(n1, n2 int) int {
-	return n1 * n2 / gcd(n1, n2)
-}
-
-func gcd(n1, n2 int) int {
-	for n2 != 0 {
-		n1, n2 = n2, n1%n2
-	}
-	return n1
 }
 
 func scan(r io.Reader) (h, w int, bs []dir) {
