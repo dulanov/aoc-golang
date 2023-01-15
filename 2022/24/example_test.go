@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -82,7 +83,8 @@ func ExamplePartOne() {
 }
 
 func ExamplePartTwo() {
-	fmt.Println(PartTwo(strings.NewReader(input)))
+	n1, n2, n3 := PartTwo(strings.NewReader(input))
+	fmt.Println(n1 + n2 + n3)
 	// Output:
 	// 877
 }
@@ -96,26 +98,29 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := PartTwo(strings.NewReader(inputTest))
-	want := 54
-	if got != want {
-		t.Errorf("got %d; want %d", got, want)
+	n1, n2, n3 := PartTwo(strings.NewReader(inputTest))
+	want := []int{18, 23, 13}
+	if !reflect.DeepEqual([]int{n1, n2, n3}, want) {
+		t.Errorf("got %v; want %v", []int{n1, n2, n3}, want)
 	}
 }
 
 func PartOne(r io.Reader) (n int) {
 	w, bs := scan(r)
-	return steps(-w, len(bs)-1, 0, w, bs)
+	p, h := -w, len(bs)/w
+	return steps(p, len(bs)-1, 0, h, w, bs) + 1
 }
 
-func PartTwo(r io.Reader) (n int) {
+func PartTwo(r io.Reader) (n1, n2, n3 int) {
 	w, bs := scan(r)
-	return steps(-w, len(bs)-1, steps(len(bs)+w-1, 0,
-		steps(-w, len(bs)-1, 0, w, bs), w, bs), w, bs)
+	p1, p2, h := -w, len(bs)+w-1, len(bs)/w
+	n1 = steps(p1, len(bs)-1, 0, h, w, bs) + 1
+	n2 = steps(p2, 0, n1, h, w, bs) + 1
+	n3 = steps(p1, len(bs)-1, n1+n2, h, w, bs) + 1
+	return n1, n2, n3
 }
 
-func steps(fr, to, ofst, w int, bs []dir) int {
-	h := len(bs) / w
+func steps(fr, to, of, h, w int, bs []dir) (n int) {
 	fs, vs := make([][]bool, lcm(len(bs)/w, w)), make(map[[2]int]bool)
 	for i := range fs {
 		fs[i] = make([]bool, len(bs))
@@ -128,33 +133,36 @@ func steps(fr, to, ofst, w int, bs []dir) int {
 			fs[j][p], p = true, d.blow(p, h, w)
 		}
 	}
-	return bfs(fr, -1, func(n, p int) (ps []int) {
+	bfs(fr, func(p int) bool {
+		return p == to
+	}, func(p int) (ps []int) {
 		if p == fr {
 			ps = append(ps, p)
 		}
 		for _, d := range []dir{nn, dn, rt, lt, up} {
-			if p, ok := d.move(p, h, w); ok && !fs[(n+ofst+1)%len(fs)][p] && !vs[[2]int{n, p}] {
+			if p, ok := d.move(p, h, w); ok && !vs[[2]int{n, p}] && !fs[(n+of+1)%len(fs)][p] {
 				ps, vs[[2]int{n, p}] = append(ps, p), true
 			}
 		}
 		return ps
-	}, func(p int) bool {
-		return p == to
-	}) + ofst + 1
+	}, func() {
+		n++
+	})
+	return n
 }
 
-func bfs[T comparable](s, sp T, ps func(n int, s T) []T, ck func(s T) bool) (n int) {
-	for q := (queue[T]{s, sp}); ; {
+func bfs[T comparable](s T, ck func(s T) bool, gn func(s T) []T, ll func()) {
+	for q, n := (queue[T]{s}), 1; !q.empty(); n-- {
+		if n == 0 {
+			n = len(q)
+			ll()
+		}
 		var s T
 		q, s, _ = q.deq()
-		if s == sp {
-			n, q = n+1, q.enq(sp)
-			continue
-		}
 		if ck(s) {
-			return n
+			return
 		}
-		q = q.enq(ps(n, s)...)
+		q = q.enq(gn(s)...)
 	}
 }
 
