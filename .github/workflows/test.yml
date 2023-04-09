@@ -25,12 +25,6 @@ jobs:
       run: go install honnef.co/go/tools/cmd/staticcheck@latest
     - name: Run staticheck
       run: staticcheck ./...
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: go
-    - name: CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
     - name: Verify dependencies
       run: go mod verify
     - name: Download dependencies
